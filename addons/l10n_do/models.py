@@ -21,4 +21,4 @@ class AccountInvoice(models.Model):
 
 
 class PosOrder(models.Model):
-	_name = 'por.order'
+	_inherit = 'por.order'
