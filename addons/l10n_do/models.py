@@ -18,7 +18,3 @@ class AccountInvoice(models.Model):
 	_inherit = 'account.invoice'
 
 	x_rnc = fields.Char(related='partner_id.x_rnc', store=True)
-
-
-class PosOrder(models.Model):
-	_inherit = 'por.order'

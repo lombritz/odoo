@@ -45,7 +45,7 @@ This is the base module to manage the accounting chart for Dominican Republic.
 * Fiscal position for local """,
     'author': 'Eneldo Serrata - Marcos Organizador de Negocios, SRL.',
     'website': 'http://marcos.do',
-    'depends': ['account', 'base_iban'],
+    'depends': ['account', 'base_iban', 'sale'],
     'data': [
         # basic accounting data
         'data/ir_sequence_type.xml',
