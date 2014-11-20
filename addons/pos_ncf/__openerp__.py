@@ -37,7 +37,7 @@ This module adds Dominican regulation requirements to the Point of Sale:
 * NCF generation based on type.
     """,
     'author': 'Jaime Rojas',
-    'depends': ['point_of_sale'],
+    'depends': ['point_of_sale','l10n_do'],
     'website': 'https://www.codefirstlab.com',
     'data': [
         'views/templates.xml',
