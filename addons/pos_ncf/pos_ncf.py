@@ -20,9 +20,7 @@
 ##############################################################################
 
 import logging
-import openerp
 from openerp import models, fields
-from openerp.http import route
 
 _logger = logging.getLogger(__name__)
 
