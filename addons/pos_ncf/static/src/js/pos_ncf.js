@@ -17,125 +17,110 @@
 
 function openerp_pos_ncf(instance, module){ //module is instance.point_of_sale
     var QWeb = instance.web.qweb,
-
     _t = instance.web._t;
 
-    module.ReceiptScreenWidget = module.ScreenWidget.extend({
-        template: 'ReceiptScreenWidget',
-
-        show_numpad:     false,
-        show_leftpane:   false,
-
-        show: function(){
-            this._super();
+    module.PaymentScreenWidget = module.PaymentScreenWidget.extend({
+        validate_order: function(options) {
             var self = this;
+            options = options || {};
 
-            var print_button = this.add_action_button({
-                    label: _t('Print'),
-                    icon: '/point_of_sale/static/src/img/icons/png48/printer.png',
-                    click: function() { self.print(); }
+            var currentOrder = this.pos.get('selectedOrder');
+
+            if(currentOrder.get('orderLines').models.length === 0){
+                this.pos_widget.screen_selector.show_popup('error',{
+                    'message': _t('Empty Order'),
+                    'comment': _t('There must be at least one product in your order before it can be validated')
                 });
+                return;
+            }
 
-            var finish_button = this.add_action_button({
-                    label: _t('Next Order'),
-                    icon: '/point_of_sale/static/src/img/icons/png48/go-next.png',
-                    click: function() { self.finishOrder(); }
-                });
+            if(!this.is_paid()){
+                return;
+            }
 
-            var sequence = new openerp.Model('ir.sequence');
-            var code = 'cr.consumidor.final';
-
-            // TODO: select sequenceName based on partner_id.fiscal_position
-
-            var _this = this;
-
-            sequence.call('next_by_code', [code]).then(function(ncf) {
-
-                var order = _this.pos.get('selectedOrder');
-
-                console.log(order.id);
-                console.log(order.get('client').id);
-
-
-                /*
-                TODO:
-                    - get partner rnc.
-                    - get partner fiscal position.
-                    - calculate ncf type.
-                    - get next ncf based on type.
-                    - update por.order ncf field.
-                    - Done!
-                */
-
-
-
-
-
-
-                console.log("RNC: " + order.x_rnc);
-                console.log("NCF: " + ncf);
-
-                // TODO: set NCF to order and save it.
-
-                _this.refresh();
-
-                if (!order._printed) {
-                    _this.print();
+            // The exact amount must be paid if there is no cash payment method defined.
+            if (Math.abs(currentOrder.getTotalTaxIncluded() - currentOrder.getPaidTotal()) > 0.00001) {
+                var cash = false;
+                for (var i = 0; i < this.pos.cashregisters.length; i++) {
+                    cash = cash || (this.pos.cashregisters[i].journal.type === 'cash');
                 }
+                if (!cash) {
+                    this.pos_widget.screen_selector.show_popup('error',{
+                        message: _t('Cannot return change without a cash payment method'),
+                        comment: _t('There is no cash payment method available in this point of sale to handle the change.\n\n Please pay the exact amount or add a cash payment method in the point of sale configuration')
+                    });
+                    return;
+                }
+            }
 
-                //
-                // The problem is that in chrome the print() is asynchronous and doesn't
-                // execute until all rpc are finished. So it conflicts with the rpc used
-                // to send the orders to the backend, and the user is able to go to the next
-                // screen before the printing dialog is opened. The problem is that what's
-                // printed is whatever is in the page when the dialog is opened and not when it's called,
-                // and so you end up printing the product list instead of the receipt...
-                //
-                // Fixing this would need a re-architecturing
-                // of the code to postpone sending of orders after printing.
-                //
-                // But since the print dialog also blocks the other asynchronous calls, the
-                // button enabling in the setTimeout() is blocked until the printing dialog is
-                // closed. But the timeout has to be big enough or else it doesn't work
-                // 2 seconds is the same as the default timeout for sending orders and so the dialog
-                // should have appeared before the timeout... so yeah that's not ultra reliable.
+            if (this.pos.config.iface_cashdrawer) {
+                this.pos.proxy.open_cashbox();
+            }
 
-                finish_button.set_disabled(true);
-                setTimeout(function(){
-                    finish_button.set_disabled(false);
-                }, 2000);
-            });
-        },
-        print: function() {
-            this.pos.get('selectedOrder')._printed = true;
-            window.print();
-        },
-        finishOrder: function() {
-            this.pos.get('selectedOrder').destroy();
-        },
-        refresh: function() {
-            var order = this.pos.get('selectedOrder');
-            console.log("order id: " + order.get('client').id);
-            var partner = new instance.Model('res.partner');
-            partner.query(['x_rnc'])
-                .filter([['id','=',order.get('client').id]])
-                .limit(1).all().then(function(p) {
-                    console.log(p);
-                    //p ? console.log(p.x_rnc) : "no partner";
-                });
 
-            $('.pos-receipt-container', this.$el).html(QWeb.render('PosTicket',{
-                    widget:this,
-                    order: order,
-                    orderlines: order.get('orderLines').models,
-                    paymentlines: order.get('paymentLines').models,
-                    rnc: order.get('x_rnc'),
-                    ncf: order.get('x_ncf')
-                }));
-        },
-        close: function(){
-            this._super();
+            var ir_sequence = new openerp.Model('ir.sequence');
+            var sequence_code = 'cf.consumidor.final';
+            if (currentOrder.get('client')) {
+                console.log('Client set!')
+            } else {
+                console.log('No client!')
+            }
+
+            ir_sequence.call('next_by_code', [sequence_code]).then(
+                function(ncf) {
+                    // Get next NCF and set it to the current order.
+                    currentOrder['x_ncf'] = ncf;
+
+                    if (options.invoice) {
+                        // deactivate the validation button while we try to send the order
+                        self.pos_widget.action_bar.set_button_disabled('validation', true);
+                        self.pos_widget.action_bar.set_button_disabled('invoice', true);
+
+                        var invoiced = self.pos.push_and_invoice_order(currentOrder);
+
+                        invoiced.fail(function (error) {
+                            if (error === 'error-no-client') {
+                                self.pos_widget.screen_selector.show_popup('error', {
+                                    message: _t('An anonymous order cannot be invoiced'),
+                                    comment: _t('Please select a client for this order. This can be done by clicking the order tab')
+                                });
+                            } else {
+                                self.pos_widget.screen_selector.show_popup('error', {
+                                    message: _t('The order could not be sent'),
+                                    comment: _t('Check your internet connection and try again.')
+                                });
+                            }
+                            self.pos_widget.action_bar.set_button_disabled('validation', false);
+                            self.pos_widget.action_bar.set_button_disabled('invoice', false);
+                        });
+
+                        invoiced.done(function () {
+                            self.pos_widget.action_bar.set_button_disabled('validation', false);
+                            self.pos_widget.action_bar.set_button_disabled('invoice', false);
+                            self.pos.get('selectedOrder').destroy();
+                        });
+
+                    } else {
+                        self.pos.push_order(currentOrder)
+                        if (self.pos.config.iface_print_via_proxy) {
+                            var receipt = currentOrder.export_for_printing();
+                            self.pos.proxy.print_receipt(QWeb.render('XmlReceipt', {
+                                receipt: receipt,
+                                widget: self
+                            }));
+                            self.pos.get('selectedOrder').destroy();    //finish order and go back to scan screen
+                        } else {
+                            self.pos_widget.screen_selector.set_current_screen(self.next_screen);
+                        }
+                    }
+
+                    // hide onscreen (iOS) keyboard
+                    setTimeout(function () {
+                        document.activeElement.blur();
+                        $("input").blur();
+                    }, 250);
+                }
+            );
         }
     });
-
 }

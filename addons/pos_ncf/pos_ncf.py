@@ -28,5 +28,4 @@ _logger = logging.getLogger(__name__)
 class PosOrder(models.Model):
     _inherit = 'pos.order'
 
-    x_rnc = fields.Char(related='partner_id.x_rnc', store=True)
     x_ncf = fields.Char(string='NCF')
