@@ -64,7 +64,6 @@ This is the base module to manage the accounting chart for Dominican Republic.
         'data/l10n_do_wizard.xml',
         'views/res_report_invoice_document.xml',
         'views/res_account_invoice.xml',
-        'views/res_company.xml',
         'views/res_partner.xml'
     ],
     'test': [],
