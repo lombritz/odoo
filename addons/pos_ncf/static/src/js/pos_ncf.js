@@ -19,6 +19,17 @@ function openerp_pos_ncf(instance, module){ //module is instance.point_of_sale
     var QWeb = instance.web.qweb,
     _t = instance.web._t;
 
+    module.ReceiptScreenWidget = module.ReceiptScreenWidget.extend({
+        print: function () {
+            var self = this;
+            // Delay the print dialog so the Loading label doesn't show up in the printed bill.
+            setTimeout(function() {
+                self.pos.get('selectedOrder')._printed = true;
+                window.print();
+            }, 1000);
+        }
+    });
+
     module.PaymentScreenWidget = module.PaymentScreenWidget.extend({
         validate_order: function(options) {
             var self = this;
@@ -35,6 +46,15 @@ function openerp_pos_ncf(instance, module){ //module is instance.point_of_sale
             }
 
             if(!this.is_paid()){
+                return;
+            }
+
+            // Client is mandatory for dry clean business.
+            if(!currentOrder.get('client')){
+                this.pos_widget.screen_selector.show_popup('error',{
+                    'message': _t('Empty Client'),
+                    'comment': _t('There must be a client selected to proceed in your order')
+                });
                 return;
             }
 
@@ -57,14 +77,9 @@ function openerp_pos_ncf(instance, module){ //module is instance.point_of_sale
                 this.pos.proxy.open_cashbox();
             }
 
-
             var ir_sequence = new openerp.Model('ir.sequence');
             var sequence_code = 'cf.consumidor.final';
-            if (currentOrder.get('client')) {
-                console.log('Client set!')
-            } else {
-                console.log('No client!')
-            }
+            // TODO: seleccionar factura para consumidor final o para credito fiscal.
 
             ir_sequence.call('next_by_code', [sequence_code]).then(
                 function(ncf) {

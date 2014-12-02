@@ -97,6 +97,12 @@
                     <t t-esc="widget.format_currency(order.getChange())"/>
                     </td></tr>
             </table>
+            <t t-if="order.get('client')">
+                <br /><br />
+                <div style="text-align:center">
+                    <h1><t t-esc="order.get('client').name"/></h1>
+                </div>
+            </t>
             <t t-if="widget.pos.config.receipt_footer">
                 <br />
                 <div style='text-align:center'>
