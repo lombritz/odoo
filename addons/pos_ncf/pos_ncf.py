@@ -52,29 +52,6 @@ class PosOrder(models.Model):
             'x_ncf':        ui_order['x_ncf'] or False,
         }
 
-    def _confirm_orders(self, cr, uid, ids, context=None):
-        account_move_obj = self.pool.get('account.move')
-        pos_order_obj = self.pool.get('pos.order')
-        for session in self.browse(cr, uid, ids, context=context):
-            local_context = dict(context or {}, force_company=session.config_id.journal_id.company_id.id)
-            order_ids = [order.id for order in session.order_ids if order.state == 'paid']
-
-            move_id = account_move_obj.create(cr, uid, {'ref' : session.name, 'journal_id' : session.config_id.journal_id.id, }, context=local_context)
-
-            pos_order_obj._create_account_move_line(cr, uid, order_ids, session, move_id, context=local_context)
-
-            for order in session.order_ids:
-                if order.state == 'done':
-                    continue
-                if order.state not in ('paid', 'invoiced', 'pending'):
-                    raise osv.except_osv(
-                        _('Error!'),
-                        _("You cannot confirm all orders of this session, because they have not the 'paid' status"))
-                else:
-                    pos_order_obj.signal_workflow(cr, uid, [order.id], 'done')
-
-        return True
-
     def create_from_ui(self, cr, uid, orders, context=None):
         # Keep only new orders
         submitted_references = [o['data']['name'] for o in orders]
@@ -142,6 +119,33 @@ class PosConfig(models.Model):
 
     x_ncf_sequences = fields.One2many(comodel_name='ir.sequence', inverse_name='x_pos_config_id', auto_join=True)
     x_partner_required = fields.Boolean(string='Cliente es requerido?')
+
+
+class PosSession(models.Model):
+    _inherit = 'pos.session'
+
+    def _confirm_orders(self, cr, uid, ids, context=None):
+        account_move_obj = self.pool.get('account.move')
+        pos_order_obj = self.pool.get('pos.order')
+        for session in self.browse(cr, uid, ids, context=context):
+            local_context = dict(context or {}, force_company=session.config_id.journal_id.company_id.id)
+            order_ids = [order.id for order in session.order_ids if order.state == 'paid']
+
+            move_id = account_move_obj.create(cr, uid, {'ref' : session.name, 'journal_id' : session.config_id.journal_id.id, }, context=local_context)
+
+            pos_order_obj._create_account_move_line(cr, uid, order_ids, session, move_id, context=local_context)
+
+            for order in session.order_ids:
+                if order.state == 'done':
+                    continue
+                if order.state not in ('paid', 'invoiced', 'pending'):
+                    raise osv.except_osv(
+                        _('Error!'),
+                        _("You cannot confirm all orders of this session, because they have not the 'paid' status"))
+                else:
+                    pos_order_obj.signal_workflow(cr, uid, [order.id], 'done')
+
+        return True
 
 
 class AccounJournal(models.Model):
