@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+
+        <!-- Activities -->
+        <record model="workflow.activity" id="act_pending">
+            <field name="wkf_id" ref="point_of_sale.wkf_pos"/>
+            <field name="name">pending</field>
+            <field name="action">action_pending()</field>
+            <field name="kind">function</field>
+        </record>
+
+        <!-- Transitions -->
+        <record model="workflow.transition" id="trans_draft_received">
+            <field name="act_from" ref="point_of_sale.act_draft"/>
+            <field name="act_to" ref="act_pending"/>
+            <field name="signal">pending</field>
+        </record>
+
+        <record model="workflow.transition" id="trans_received_done">
+            <field name="act_from" ref="act_pending"/>
+            <field name="act_to" ref="point_of_sale.act_paid"/>
+            <field name="condition">test_paid()</field>
+            <field name="signal">pending_paid</field>
+        </record>
+
+    </data>
+</openerp>

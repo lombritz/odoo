@@ -40,6 +40,10 @@ This module adds Dominican regulation requirements to the Point of Sale:
     'depends': ['point_of_sale','l10n_do'],
     'website': 'https://www.codefirstlab.com',
     'data': [
+        'data/pos_ncf_workflow.xml',
+        'views/ir_sequence_view.xml',
+        'views/pos_ncf_config.xml',
+        'views/pos_ncf_payments.xml',
         'views/templates.xml',
     ],
     'qweb':[

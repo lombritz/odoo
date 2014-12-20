@@ -12,7 +12,10 @@
 
         <template id="assets_frontend" inherit_id="web.assets_common">
           <xpath expr="." position="inside">
-              <script type="text/javascript" src="/pos_ncf/static/src/js/pos_ncf.js"></script>
+              <script type="text/javascript" src="/pos_ncf/static/src/js/db.js"></script>
+              <script type="text/javascript" src="/pos_ncf/static/src/js/models.js"></script>
+              <script type="text/javascript" src="/pos_ncf/static/src/js/screens.js"></script>
+              <script type="text/javascript" src="/pos_ncf/static/src/js/widgets.js"></script>
               <script type="text/javascript" src="/pos_ncf/static/src/js/main.js"></script>
           </xpath>
         </template>

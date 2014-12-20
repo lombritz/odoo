@@ -1,6 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
 
+    <t t-name="PosTicketPending">
+        <div style="width:100%; text-align:center">
+            <div class="pos-sale-ticket">
+
+                <div class="pos-center-align"><t t-esc="order.get('creationDate').toString(Date.CultureInfo.formatPatterns.shortDate + ' ' +
+                    Date.CultureInfo.formatPatterns.longTime)"/> <t t-esc="order.get('name')"/></div>
+                <br />
+                <t t-esc="order.get('companyName')"/><br />
+                Cajero: <t t-esc="order.user_id ? order.user_id[1] : ''"/><br />
+                <t t-if="order.get('client')">
+                    <hr />
+                    Cliente: <t t-esc="order.get('client').name"/>
+                    <t t-if="order.get('client').phone">
+                        <br />
+                        Telefono: <t t-esc="order.get('client').phone"/>
+                    </t>
+                    <hr />
+                </t>
+                <br />
+                <table>
+                    <colgroup>
+                        <col width='10%' />
+                        <col width='65%' />
+                        <col width='25%' />
+                    </colgroup>
+                    <t t-if="orderlines">
+                        <tr t-foreach="orderlines" t-as="orderline">
+                            <td>
+                                <t t-esc="orderline.quantity"/>
+                            </td>
+                            <td>
+                                <t t-esc="orderline.product.display_name"/>
+                                 <t t-if="orderline.discount > 0">
+                                    <div class="pos-disc-font">
+                                        Con un <t t-esc="orderline.discount"/>% de descuento
+                                    </div>
+                                </t>
+                            </td>
+                            <td class="pos-right-align">
+                                <t t-esc="widget.format_currency(orderline.price)"/>
+                            </td>
+                        </tr>
+                    </t>
+                </table>
+                <br />
+                <table>
+                    <tr>
+                        <td>Taxes:</td>
+                        <td class="pos-right-align">
+                            <t t-esc="widget.format_currency(order.get('order').amount_tax)"/>
+                        </td>
+                    </tr>
+                    <tr class="emph">
+                        <td>Total:</td>
+                        <td class="pos-right-align">
+                            <t t-esc="widget.format_currency(order.get('order').amount_total)"/>
+                        </td>
+                    </tr>
+                </table>
+                <br />
+            </div>
+        </div>
+    </t>
+
     <t t-name="PosTicket">
         <div class="pos-sale-ticket">
 
@@ -17,7 +81,8 @@
                 <hr />
                 Cliente: <t t-esc="order.get('client').name"/>
                 <t t-if="order.get('client').phone">
-                    (<t t-esc="order.get('client').phone"/>)
+                    <br />
+                    Telefono: <t t-esc="order.get('client').phone"/>
                 </t>
                 <hr />
             </t>
@@ -111,4 +176,64 @@
             </t>
         </div>
     </t>
+
+    <t t-name="PendingOrderLine">
+        <tr class='order-line' t-att-data-id='order.id'>
+            <td><t t-esc="order.get('creationDate').toString(Date.CultureInfo.formatPatterns.shortDate) or ''" /></td>
+            <td><t t-esc="order.get('client').name or ''" /></td>
+            <td><t t-esc="order.get('client').phone or ''" /></td>
+            <td><t t-esc="order.get('x_ncf')" /></td>
+        </tr>
+    </t>
+
+    <t t-name="PendingOrderListScreenWidget">
+        <div class="orderlist-screen screen">
+            <div class="screen-content">
+                <section class="top-content">
+                    <span class='button back'>
+                        <i class='fa fa-angle-double-left'></i>
+                        Cancel
+                    </span>
+                    <span class='searchbox'>
+                        <input placeholder='Buscar Orden' />
+                        <span class='search-clear'></span>
+                    </span>
+                    <span class='searchbox'></span>
+                    <span class='button next oe_hidden highlight'>
+                        Entregar Orden
+                        <i class='fa fa-angle-double-right'></i>
+                    </span>
+                </section>
+                <section class="full-content">
+                    <div class='window'>
+                        <section class='subwindow collapsed'>
+                            <div class='subwindow-container'>
+                                <div class='subwindow-container-fix order-details-contents'>
+                                </div>
+                            </div>
+                        </section>
+                        <section class='subwindow'>
+                            <div class='subwindow-container'>
+                                <div class='subwindow-container-fix touch-scrollable scrollable-y'>
+                                    <table class='order-list'>
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Cliente</th>
+                                                <th>Telefono</th>
+                                                <th>NCF</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class='order-list-contents'>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </t>
+
 </templates>

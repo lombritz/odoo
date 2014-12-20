@@ -18,9 +18,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
 import logging
-from openerp import models, fields
+import time
+
+from openerp import tools, models, fields
+from openerp.osv import osv
+from openerp.tools.translate import _
 
 _logger = logging.getLogger(__name__)
 
@@ -29,3 +32,101 @@ class PosOrder(models.Model):
     _inherit = 'pos.order'
 
     x_ncf = fields.Char(string='NCF')
+
+    def _order_fields(self, cr, uid, ui_order, context=None):
+        return {
+            'name':         ui_order['name'],
+            'user_id':      ui_order['user_id'] or False,
+            'session_id':   ui_order['pos_session_id'],
+            'lines':        ui_order['lines'],
+            'pos_reference':ui_order['name'],
+            'partner_id':   ui_order['partner_id'] or False,
+            'x_ncf':        ui_order['x_ncf'] or False,
+        }
+
+    def create_from_ui(self, cr, uid, orders, context=None):
+        # Keep only new orders
+        submitted_references = [o['data']['name'] for o in orders]
+        existing_order_ids = self.search(cr, uid, [('pos_reference', 'in', submitted_references)], context=context)
+        existing_orders = self.read(cr, uid, existing_order_ids, ['pos_reference'], context=context)
+        existing_references = set([o['pos_reference'] for o in existing_orders])
+        orders_to_save = [o for o in orders if o['data']['name'] not in existing_references]
+
+        order_ids = []
+
+        for tmp_order in orders_to_save:
+            to_invoice = tmp_order['to_invoice']
+            order = tmp_order['data']
+            order_id = self.create(cr, uid, self._order_fields(cr, uid, order, context=context),context)
+
+            wkf_signal = 'paid'
+
+            for payments in order['statement_ids']:
+                # If journal is pending payment then put order to pending status.
+                if self.pool.get('account.journal').browse(cr, uid, payments[2]['journal_id'], context=context).x_pending_payment:
+                    wkf_signal = 'pending'
+                self.add_payment(cr, uid, order_id, self._payment_fields(cr, uid, payments[2], context=context), context=context)
+
+            session = self.pool.get('pos.session').browse(cr, uid, order['pos_session_id'], context=context)
+            if session.sequence_number <= order['sequence_number']:
+                session.write({'sequence_number': order['sequence_number'] + 1})
+                session.refresh()
+
+            if order['amount_return']:
+                cash_journal = session.cash_journal_id
+                if not cash_journal:
+                    cash_journal_ids = filter(lambda st: st.journal_id.type=='cash', session.statement_ids)
+                    if not len(cash_journal_ids):
+                        raise osv.except_osv( _('error!'),
+                                              _("No cash statement found for this session. Unable to record returned cash."))
+                    cash_journal = cash_journal_ids[0].journal_id
+                self.add_payment(cr, uid, order_id, {
+                    'amount': -order['amount_return'],
+                    'payment_date': time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'payment_name': _('return'),
+                    'journal': cash_journal.id,
+                    }, context=context)
+            order_ids.append(order_id)
+
+            try:
+                self.signal_workflow(cr, uid, [order_id], wkf_signal)
+            except Exception as e:
+                _logger.error('Could not fully process the POS Order: %s', tools.ustr(e))
+
+            if to_invoice:
+                self.action_invoice(cr, uid, [order_id], context)
+                order_obj = self.browse(cr, uid, order_id, context)
+                self.pool['account.invoice'].signal_workflow(cr, uid, [order_obj.invoice_id.id], 'invoice_open')
+
+        return order_ids
+
+    def action_pending(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'pending'}, context=context)
+        # self.create_account_move(cr, uid, ids, context=context)
+        return True
+
+
+class PosConfig(models.Model):
+    _inherit = 'pos.config'
+
+    x_ncf_sequences = fields.One2many(comodel_name='ir.sequence', inverse_name='x_pos_config_id', auto_join=True)
+    x_partner_required = fields.Boolean(string='Cliente es requerido?')
+
+
+class AccounJournal(models.Model):
+    _inherit = 'account.journal'
+
+    x_pending_payment = fields.Boolean(string='Permitir pago pendiente?')
+
+
+class IrSequence(models.Model):
+    _inherit = 'ir.sequence'
+
+    x_ncf = fields.Boolean(string='NCF?')
+    x_dn = fields.Char(string='División de Negocio')
+    x_pe = fields.Char(string='Punto de Emisión')
+    x_ai = fields.Char(string='Area de Impresión')
+    x_tcf = fields.Char(string='Tipo de Comprobante Fiscal')
+
+    x_pos_config_id = fields.Many2one(comodel_name='pos.config', string='TPV')
+

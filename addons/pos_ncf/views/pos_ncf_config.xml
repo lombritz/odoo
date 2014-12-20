@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="view_pos_config_form_ncf">
+            <field name="name">pos.config.form.view</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_config_form" />
+            <field name="model">pos.config</field>
+            <field name="arch" type="xml">
+                <field name="group_by" position="after">
+                    <field name="x_partner_required" />
+                </field>
+                <field name="journal_ids" position="after">
+                    <separator string="Secuencias de Comprobantes Fiscales" colspan="4"/>
+                    <field name="x_ncf_sequences" />
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
