@@ -1,0 +1,102 @@
+Installing Odoo version 8 on Ubuntu 14.04 LTS Server 64-bit
+
+# Update the system
+sudo apt-get update
+sudo apt-get dist-upgrade
+sudo reboot
+
+# Setup SSH
+sudo apt-get install openssh-server
+sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.factory-defaults
+sudo chmod a-w /etc/ssh/sshd_config.factory-defaults
+sudo vi /etc/ssh/sshd_config
+sudo restart ssh
+
+# Config system odoo user
+sudo adduser --system --home=/opt/odoo --group odoo
+
+# Install & configure PostgreSQL
+sudo apt-get install postgresql
+sudo su - postgres
+createuser --createdb --username postgres --no-createrole --no-superuser --pwprompt odoo
+exit
+
+# Install Odoo dependencies
+sudo apt-get install python-dateutil python-decorator python-docutils python-feedparser python-gdata python-gevent python-imaging python-jinja2 python-ldap python-libxslt1 python-lxml python-mako python-mock python-openid python-passlib python-psutil python-psycopg2 python-pybabel python-pychart python-pydot python-pyparsing python-pypdf python-reportlab python-requests python-simplejson python-tz python-unittest2 python-vatnumber python-vobject python-werkzeug python-xlwt python-yaml git
+
+# Install wkhtmltopdf
+wget http://downloads.sourceforge.net/project/wkhtmltopdf/0.12.1/wkhtmltox-0.12.1_linux-trusty-amd64.deb
+sudo dpkg -i wkhtmltox-0.12.1_linux-trusty-amd64.deb
+
+# Login as odoo
+sudo su - odoo -s /bin/bash
+
+# Clone the data
+git clone https://www.github.com/lombritz/odoo --depth 1 --branch 8.0 --single-branch .
+exit
+
+# Configure Odoo Server
+sudo mkdir /etc/odoo
+sudo cp /opt/odoo/debian/openerp-server.conf /etc/odoo/odoo-server.conf
+sudo chown odoo: /etc/odoo/odoo-server.conf
+sudo chmod 640 /etc/odoo/odoo-server.conf
+sudo cp /etc/odoo/odoo-server.conf /etc/odoo/odoo-server.conf-bln.ORIG
+
+sudo vi /etc/odoo/odoo-server.conf
+    db_password = False to the password you chose early on during the install
+    addons_path = /opt/odoo/addons
+    logfile = /var/log/odoo/odoo-server.log
+
+# Configure DAEMON service
+sudo cp /opt/odoo/debian/init /etc/init.d/odoo-server
+sudo vi /etc/init.d/odoo-server
+    DAEMON from /usr/bin to /opt/odoo/openerp-server
+    CONFIG from openerp-server.conf to odoo-server.conf
+    NAME and DESC to Odoo-Server instead of just odoo.
+
+sudo chown root: /etc/init.d/odoo-server
+sudo chmod 755 /etc/init.d/odoo-server
+
+# Configure logging
+sudo mkdir /var/log/odoo
+sudo chown odoo:root /var/log/odoo
+
+# Start the server
+sudo /etc/init.d/odoo-server start
+
+# Diagnose status
+netstat -a | more
+ps aux | grep odoo
+
+# Reboot machine
+sudo /etc/init.d/odoo-server stop
+sudo reboot
+
+
+# Do the following modifications and you are ready
+
+
+# sudo vi /etc/init.d/postgresql to add the next signals where appropriate:
+
+initctl emit starting-postgresql
+initctl emit started-postgresql
+initctl emit stopping-postgresql
+initctl emit stopped-postgresql
+
+
+
+# sudo vi /etc/init/odoo-server.conf with the following content:
+
+description "Odoo-Server"
+author "Jaime Rojas <jaimitorojas@gmail.com>"
+
+start on started-postgresql
+stop on stopping-postgresql
+
+respawn
+
+script
+    exec /etc/init.d/odoo-server start
+end script
+
+# EOF
