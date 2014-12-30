@@ -8,6 +8,8 @@ _build/
 *.py[co]
 # setup.py egg_info
 *.egg-info
+# intellij idea files
+*.iml
 # emacs backup files
 *~
 # hg stuff
