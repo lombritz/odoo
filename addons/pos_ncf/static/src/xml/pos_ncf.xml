@@ -95,9 +95,9 @@
             </t>
             <table>
                 <colgroup>
-                    <col width='10%' />
-                    <col width='65%' />
-                    <col width='25%' />
+                    <col width='20%' />
+                    <col width='50%' />
+                    <col width='30%' />
                 </colgroup>
                 <tr t-foreach="orderlines" t-as="orderline">
                     <td>
