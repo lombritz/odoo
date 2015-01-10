@@ -167,6 +167,7 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
         },
 
         _flush_ncf_sequence: function(tcf) {
+            var self = this;
             var irSeqModel = new openerp.Model('ir.sequence');
 
             var seq_id = this.ncf_sequences[tcf]['id'];
