@@ -20,6 +20,7 @@
 ##############################################################################
 import logging
 import time
+import datetime
 
 from openerp import tools, models, fields
 from openerp.osv import osv
@@ -31,8 +32,6 @@ _logger = logging.getLogger(__name__)
 class PosOrder(models.Model):
     _inherit = 'pos.order'
 
-    x_ncf = fields.Char(string='NCF')
-
     state = fields.Selection(selection=[('draft', 'New'),
                                         ('cancel', 'Cancelled'),
                                         ('pending', 'Pendiente'),
@@ -41,15 +40,20 @@ class PosOrder(models.Model):
                                         ('invoiced', 'Invoiced')],
                              string='Status', readonly=True, copy=False)
 
+    x_ncf = fields.Char(string='NCF')
+
+    x_delivery_date = fields.Datetime(string='Fecha de entrega')
+
     def _order_fields(self, cr, uid, ui_order, context=None):
         return {
-            'name':         ui_order['name'],
-            'user_id':      ui_order['user_id'] or False,
-            'session_id':   ui_order['pos_session_id'],
-            'lines':        ui_order['lines'],
-            'pos_reference':ui_order['name'],
-            'partner_id':   ui_order['partner_id'] or False,
-            'x_ncf':        ui_order['x_ncf'] or False,
+            'name': ui_order['name'],
+            'user_id': ui_order['user_id'] or False,
+            'session_id': ui_order['pos_session_id'],
+            'lines': ui_order['lines'],
+            'pos_reference': ui_order['name'],
+            'partner_id': ui_order['partner_id'] or False,
+            'x_ncf': ui_order['x_ncf'] or False,
+            'x_delivery_date': datetime.datetime.strptime(ui_order['x_delivery_date'], "%d/%m/%Y %I:%M %p"),
         }
 
     def create_from_ui(self, cr, uid, orders, context=None):

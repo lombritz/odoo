@@ -289,7 +289,8 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                 user_id: this.pos.cashier ? this.pos.cashier.id : this.pos.user.id,
                 uid: this.uid,
                 sequence_number: this.sequence_number,
-                x_ncf: this.x_ncf
+                x_ncf: this.x_ncf,
+                x_delivery_date: this.x_delivery_date
             };
         }
     });
