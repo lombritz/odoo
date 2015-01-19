@@ -309,6 +309,25 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             }
         },
 
+        formatDate: function (date) {
+            var formattedDate = "";
+            formattedDate += ("00" + date.getDate()).slice(-2) + '/';
+            formattedDate += ("00" + (date.getMonth() + 1)).slice(-2) + '/';
+            formattedDate += date.getFullYear();
+            return formattedDate;
+        },
+
+        formatAMPM: function (date) {
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+            var strTime = hours + ':' + minutes + ' ' + ampm;
+            return strTime;
+        },
+
         validate_order: function(options) {
             var self = this;
             options = options || {};
@@ -330,8 +349,8 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             // Client is mandatory for dry clean business.
             if(this.pos.config.x_partner_required && !currentOrder.get('client')){
                 this.pos_widget.screen_selector.show_popup('error',{
-                    'message': _t('Empty Client'),
-                    'comment': _t('There must be a client selected to proceed in your order')
+                    'message': _t('Cliente Requerido'),
+                    'comment': _t('Debe seleccionar un cliente para proceder con la orden.')
                 });
                 return;
             }
@@ -355,9 +374,51 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 this.pos.proxy.open_cashbox();
             }
 
-            // Get next NCF and set it to the current order.
-            currentOrder['x_ncf'] = this.pos.get_next_ncf(options.tcf);
-            currentOrder['x_credito_fiscal'] = (options.tcf == '01');
+            var forEach = Array.prototype.forEach;
+            var hasNormalPmt = false;
+            var hasPendingPmt = false;
+            forEach.call(currentOrder.get('paymentLines').models, function(paymentLine) {
+                if (paymentLine.cashregister.journal.x_pending_payment) {
+                    hasPendingPmt = true;
+                } else {
+                    hasNormalPmt = true;
+                }
+            });
+
+            if (hasPendingPmt && hasNormalPmt) {
+                this.pos_widget.screen_selector.show_popup('error',{
+                    'message': _t('Combinación de Pago Inválida'),
+                    'comment': _t('El pago pendiente no se puede hacer parcial, la orden debe estar completamente pendiente o completamente paga.')
+                });
+                return;
+            }
+
+            var deliveryDate = new Date();
+            deliveryDate.setHours(17, 0);
+            if (deliveryDate.getDay() >= 5) {
+                deliveryDate.setDate(deliveryDate.getDate() + 3);
+            } else {
+                deliveryDate.setDate(deliveryDate.getDate() + 2);
+            }
+
+            currentOrder['x_delivery_date'] = this.formatDate(deliveryDate) + ' ' + this.formatAMPM(deliveryDate);
+
+            currentOrder['x_ncf'] = '';
+            currentOrder['x_credito_fiscal'] = false;
+            if (hasNormalPmt) {
+                // Get next NCF and set it to the current order.
+                currentOrder['x_ncf'] = this.pos.get_next_ncf(options.tcf);
+                if (options.tcf == '01') {
+                    currentOrder['x_receipt_type'] = 'Válida para Crédito Fiscal';
+                } else {
+                    currentOrder['x_receipt_type'] = 'Factura de Consumidor Final';
+                }
+                currentOrder['x_show_ncf'] = true;
+            } else {
+                currentOrder['x_show_ncf'] = false;
+                currentOrder['x_receipt_type'] = 'Recibo de Orden de Servicio';
+            }
+
             if (options.invoice) {
                 // deactivate the validation button while we try to send the order
                 self.pos_widget.action_bar.set_button_disabled('validation', true);

@@ -152,7 +152,7 @@ class PosSession(models.Model):
 class AccounJournal(models.Model):
     _inherit = 'account.journal'
 
-    x_pending_payment = fields.Boolean(string='Método de pago pendiete')
+    x_pending_payment = fields.Boolean(string='Método de pago pendiente')
 
 
 class IrSequence(models.Model):

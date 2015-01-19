@@ -73,7 +73,9 @@
             <br />
             <t t-esc="widget.pos.company.name"/><br />
             RNC: <t t-esc="widget.pos.company.vat || ''"/><br />
-            NCF: <t t-esc="order.x_ncf"/><br />
+            <t t-if="order.x_show_ncf">
+                NCF: <t t-esc="order.x_ncf"/><br />
+            </t>
             Telefono: <t t-esc="widget.pos.company.phone || ''"/><br />
             Cajero: <t t-esc="widget.pos.cashier ? widget.pos.cashier.name : widget.pos.user.name"/><br />
             Tienda: <t t-esc="widget.pos.shop.name"/><br />
@@ -86,15 +88,9 @@
                 </t>
                 <hr />
             </t>
-            <t t-if="order.x_credito_fiscal">
+            <t t-if="order.x_receipt_type">
                 <div style='text-align:center'>
-                    Válida para Crédito Fiscal
-                </div>
-                <hr />
-            </t>
-            <t t-if="!order.x_credito_fiscal">
-                <div style='text-align:center'>
-                    Factura de Consumidor Final
+                    <t t-esc="order.x_receipt_type" />
                 </div>
                 <hr />
             </t>
@@ -170,9 +166,21 @@
             </table>
             <br />
             <table>
-                <tr><td>Cambio:</td><td class="pos-right-align">
-                    <t t-esc="widget.format_currency(order.getChange())"/>
-                    </td></tr>
+                <tr>
+                    <td>Cambio:</td>
+                    <td class="pos-right-align">
+                        <t t-esc="widget.format_currency(order.getChange())"/>
+                    </td>
+                </tr>
+            </table>
+            <br />
+            <table>
+                <tr>
+                    <td>Fecha de entrega:</td>
+                    <td class="pos-right-align">
+                        <t t-esc="order.x_delivery_date" />
+                    </td>
+                </tr>
             </table>
             <t t-if="order.get('client')">
                 <br /><br />
