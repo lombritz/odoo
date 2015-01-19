@@ -10,6 +10,9 @@
                 <field name="group_by" position="after">
                     <field name="x_partner_required" />
                 </field>
+                <field name="group_by" position="after">
+                    <field name="x_allow_pending_order" />
+                </field>
                 <field name="journal_ids" position="after">
                     <separator string="Secuencias de Comprobantes Fiscales" colspan="4"/>
                     <field name="x_ncf_sequences" />

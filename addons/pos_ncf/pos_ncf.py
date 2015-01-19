@@ -119,6 +119,7 @@ class PosConfig(models.Model):
 
     x_ncf_sequences = fields.One2many(comodel_name='ir.sequence', inverse_name='x_pos_config_id', auto_join=True)
     x_partner_required = fields.Boolean(string='Cliente es requerido?')
+    x_allow_pending_order = fields.Boolean(string='Cobrar ordenes pendientes?', help='Esta funcionalidad requiere ordenes pendientes de pago en el TPV, por lo que debe existir al menos un TPV con un metodo de pago pendiente.')
 
 
 class PosSession(models.Model):
@@ -151,7 +152,7 @@ class PosSession(models.Model):
 class AccounJournal(models.Model):
     _inherit = 'account.journal'
 
-    x_pending_payment = fields.Boolean(string='Permitir pago pendiente?')
+    x_pending_payment = fields.Boolean(string='Método de pago pendiete')
 
 
 class IrSequence(models.Model):

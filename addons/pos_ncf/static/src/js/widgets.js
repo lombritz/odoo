@@ -9,7 +9,7 @@ function openerp_pos_ncf_widgets(instance, module) { //module is instance.point_
             var self = this;
             this._super();
 
-            if (false) {// TODO: implement configurable parameter for the POS to allow unpaid orders.
+            if (self.pos.config.x_allow_pending_order) {// TODO: implement configurable parameter for the POS to allow unpaid orders.
                 // --------  New Screens definitions.
                 this.orderlist_screen = new module.PendingOrderListScreenWidget(this, {});
                 this.orderlist_screen.appendTo(this.$('.screens'));

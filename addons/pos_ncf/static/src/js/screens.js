@@ -357,6 +357,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
 
             // Get next NCF and set it to the current order.
             currentOrder['x_ncf'] = this.pos.get_next_ncf(options.tcf);
+            currentOrder['x_credito_fiscal'] = (options.tcf == '01');
             if (options.invoice) {
                 // deactivate the validation button while we try to send the order
                 self.pos_widget.action_bar.set_button_disabled('validation', true);
