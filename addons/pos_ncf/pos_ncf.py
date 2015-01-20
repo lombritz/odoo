@@ -157,7 +157,7 @@ class AccounJournal(models.Model):
     _inherit = 'account.journal'
 
     x_pending_payment = fields.Boolean(string='Genera orden pendiente?')
-    x_post_payment = fields.Boolean(string='Post Pago de ordenes pendientes?')
+    x_post_payment = fields.Boolean(string='Pospago de ordenes pendientes?')
 
 
 class IrSequence(models.Model):
