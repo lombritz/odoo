@@ -41,14 +41,13 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             this.old_order = null;
             this.new_order = this.old_order;
 
-            this.$('.back').click(function(){
-                self.pos_widget.screen_selector.back();
+            this.$('.back').click(function() {
+                self.pos_widget.screen_selector.set_current_screen(self.previous_screen);
             });
 
-            this.$('.next').click(function(){
-                self.save_changes();
+            this.$('.next').click(function() {
+                self.set_pending_order();
                 self.old_order = self.new_order;
-                // TODO: go to the Product Screen.
                 self.pos_widget.screen_selector.set_current_screen(self.next_screen);
             });
 
@@ -98,7 +97,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 this.display_order_details('hide');
                 if ( associate_result && orders.length === 1){
                     this.new_order = orders[0];
-                    this.save_changes();
+                    this.set_pending_order();
                     this.pos_widget.screen_selector.back();
                 }
                 this.render_list(orders);
@@ -131,10 +130,11 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 contents.appendChild(clientline);
             }
         },
-        save_changes: function(){
-            if ( this.has_order_changed() ) {
-                var currentOrder = this.pos.get('selectedOrder');
-                // TODO: clear currentOrder products and payments.
+        set_pending_order: function() {
+            var currentOrder = this.pos.get('selectedOrder');
+            if (this.has_order_changed()) {
+                currentOrder.get('orderLines').reset();
+                currentOrder.setImmutable(false);
                 var forEach = Array.prototype.forEach;
                 forEach.call(this.new_order.get('orderLines').models, function(orderLine) {
                     currentOrder.addProduct(orderLine.product, {
@@ -143,9 +143,12 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                         discount: orderLine.discount
                     });
                 });
+
                 if ( this.new_order.get('client') ) {
                     currentOrder.set_client( this.new_order.get('client') );
                 }
+
+                currentOrder.setImmutable(true);
                 this.new_order = currentOrder;
             }
         },
@@ -216,7 +219,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             if(visibility === 'show'){
                 contents.empty();
                 contents.append($(QWeb.render('PosTicketPending',{
-                    widget:this,
+                    widget: this,
                     order: order,
                     orderlines: order.get('orderLines').models
                 })));
@@ -358,7 +361,11 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 return;
             }
 
-            if(!this.is_paid()){
+            if(!this.is_paid()) {
+                this.pos_widget.screen_selector.show_popup('error',{
+                    'message': _t('Metodo de Pago Requerido'),
+                    'comment': _t('Debe pagar para proceder con la orden.')
+                });
                 return;
             }
 

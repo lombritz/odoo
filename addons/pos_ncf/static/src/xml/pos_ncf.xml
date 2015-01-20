@@ -22,10 +22,16 @@
                 <br />
                 <table>
                     <colgroup>
-                        <col width='10%' />
-                        <col width='65%' />
-                        <col width='25%' />
+                        <col width='20%' />
+                        <col width='50%' />
+                        <col width='30%' />
                     </colgroup>
+                    <tr>
+                        <td>Cnt.</td>
+                        <td>Descripción</td>
+                        <td class="pos-right-align">Monto</td>
+                    </tr>
+                    <br />
                     <t t-if="orderlines">
                         <tr t-foreach="orderlines" t-as="orderline">
                             <td>
@@ -40,13 +46,19 @@
                                 </t>
                             </td>
                             <td class="pos-right-align">
-                                <t t-esc="widget.format_currency(orderline.price)"/>
+                                <t t-esc="widget.format_currency(orderline.price * orderline.quantity)"/>
                             </td>
                         </tr>
                     </t>
                 </table>
                 <br />
                 <table>
+                    <tr>
+                        <td>Sub-Total:</td>
+                        <td class="pos-right-align">
+                            <t t-esc="widget.format_currency(order.get('order').amount_total - order.get('order').amount_tax)"/>
+                        </td>
+                    </tr>
                     <tr>
                         <td>Taxes:</td>
                         <td class="pos-right-align">

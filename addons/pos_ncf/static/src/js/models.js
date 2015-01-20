@@ -120,7 +120,11 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                                 // add orderlines
                                 _.each(orderlines, function(orderline) {
                                     var product = self.db.get_product_by_id(orderline.product_id[0]);
-                                    order.addProduct(product, {price:product.price});
+                                    order.addProduct(product, {
+                                        price: product.price,
+                                        quantity: orderline.qty,
+                                        discount: orderline.discount
+                                    });
                                 });
                             });
                         self.db.add_pending_orders([order]);
@@ -250,7 +254,11 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                                 // add orderlines
                                 _.each(orderlines, function(orderline) {
                                     var product = self.db.get_product_by_id(orderline.product_id[0]);
-                                    order.addProduct(product, {price:product.price});
+                                    order.addProduct(product, {
+                                        price: product.price,
+                                        quantity: orderline.qty,
+                                        discount: orderline.discount
+                                    });
                                 });
                             });
                         self.db.add_pending_orders([order]);
@@ -266,6 +274,56 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
     });
 
     module.Order = module.Order.extend({
+        immutable: false,
+
+        setImmutable: function(immutable) {
+            this.immutable = immutable;
+        },
+
+        set_client: function(client){
+            if (this.immutable) {
+                this.pos.pos_widget.screen_selector.show_popup('error',{
+                    message: _t("No puede cambiar el cliente"),
+                    comment: _t('No puede cambiar el cliente de una orden pendiente')
+                });
+            } else {
+                this.set('client',client);
+            }
+        },
+
+        addProduct: function(product, options) {
+            if (this.immutable) {
+                this.pos.pos_widget.screen_selector.show_popup('error',{
+                    message: _t("No puede agregar productos"),
+                    comment: _t('No puede agregar productos a una orden pendiente')
+                });
+            } else {
+                options = options || {};
+                var attr = JSON.parse(JSON.stringify(product));
+                attr.pos = this.pos;
+                attr.order = this;
+                var line = new module.Orderline({}, {pos: this.pos, order: this, product: product});
+
+                if(options.quantity !== undefined){
+                    line.set_quantity(options.quantity);
+                }
+                if(options.price !== undefined){
+                    line.set_unit_price(options.price);
+                }
+                if(options.discount !== undefined){
+                    line.set_discount(options.discount);
+                }
+
+                var last_orderline = this.getLastOrderline();
+                if( last_orderline && last_orderline.can_be_merged_with(line) && options.merge !== false){
+                    last_orderline.merge(line);
+                }else{
+                    this.get('orderLines').add(line);
+                }
+                this.selectLine(this.getLastOrderline());
+            }
+        },
+
         export_as_JSON: function() {
             var orderLines, paymentLines;
             orderLines = [];
