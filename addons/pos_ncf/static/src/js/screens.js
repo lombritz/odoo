@@ -22,7 +22,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
     module.PendingOrderListScreenWidget = module.ScreenWidget.extend({
         template: 'PendingOrderListScreenWidget',
 
-        next_screen: 'payment',
+        next_screen: 'products',
         previous_screen: 'products',
 
         show_leftpane: false,
@@ -38,7 +38,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
 
             this.renderElement();
             this.details_visible = false;
-            this.old_order = this.pos.get('selectedOrder').get('client');
+            this.old_order = null;
             this.new_order = this.old_order;
 
             this.$('.back').click(function(){
@@ -47,6 +47,8 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
 
             this.$('.next').click(function(){
                 self.save_changes();
+                self.old_order = self.new_order;
+                // TODO: go to the Product Screen.
                 self.pos_widget.screen_selector.set_current_screen(self.next_screen);
             });
 
@@ -120,7 +122,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 clientline.innerHTML = clientline_html;
                 clientline = clientline.childNodes[1];
 
-                if( orders === this.new_order ){
+                if( orders[i] === this.new_order ){
                     clientline.classList.add('highlight');
                 }else{
                     clientline.classList.remove('highlight');
@@ -130,17 +132,24 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             }
         },
         save_changes: function(){
-            // TODO: pagar la orden aqui y salvar el nuevo estatus.
-            if( this.has_client_changed() ){
-                console.log(this.new_order);
-                this.pos.set('selectedOrder', this.new_order);
-                this.pos.get('selectedOrder').set_screen_data('previous-screen', 'orderlist');
-                if (this.new_order.client) {
-                    this.pos.get('selectedOrder').set_client(this.new_order.client);
+            if ( this.has_order_changed() ) {
+                var currentOrder = this.pos.get('selectedOrder');
+                // TODO: clear currentOrder products and payments.
+                var forEach = Array.prototype.forEach;
+                forEach.call(this.new_order.get('orderLines').models, function(orderLine) {
+                    currentOrder.addProduct(orderLine.product, {
+                        quantity: orderLine.quantity,
+                        price: orderLine.price,
+                        discount: orderLine.discount
+                    });
+                });
+                if ( this.new_order.get('client') ) {
+                    currentOrder.set_client( this.new_order.get('client') );
                 }
+                this.new_order = currentOrder;
             }
         },
-        has_client_changed: function(){
+        has_order_changed: function(){
             if( this.old_order && this.new_order ){
                 return this.old_order.id !== this.new_order.id;
             }else{
@@ -158,7 +167,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             }else{
                 $button.text(_t('Deselect Pending Order'));
             }
-            $button.toggleClass('oe_hidden',!this.has_client_changed());
+            $button.toggleClass('oe_hidden',!this.has_order_changed());
         },
 
         line_select: function(event,$line,id){
@@ -206,7 +215,6 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
 
             if(visibility === 'show'){
                 contents.empty();
-                console.log(order);
                 contents.append($(QWeb.render('PosTicketPending',{
                     widget:this,
                     order: order,
@@ -272,7 +280,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             this.pos_widget.action_bar.destroy_buttons();
 
             this.add_action_button({
-                label: 'Volver',
+                label: _t('Volver'),
                 icon: '/point_of_sale/static/src/img/icons/png48/go-previous.png',
                 click: function(){
                     self.back();
@@ -280,7 +288,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             });
 
             this.add_action_button({
-                label: 'Consumidor Final',
+                label: _t('Consumidor Final'),
                 name: 'validation',
                 icon: '/point_of_sale/static/src/img/icons/png48/invoice.png',
                 click: function(){
@@ -307,6 +315,8 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                     }
                 });
             }
+
+            this.update_payment_summary();
         },
 
         formatDate: function (date) {
@@ -326,6 +336,12 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             minutes = minutes < 10 ? '0'+minutes : minutes;
             var strTime = hours + ':' + minutes + ' ' + ampm;
             return strTime;
+        },
+        update_payment_summary: function() {
+            this._super();
+            if (this.pos_widget.action_bar) {
+                this.pos_widget.action_bar.set_button_disabled('cf.validation', !this.is_paid());
+            }
         },
 
         validate_order: function(options) {
@@ -422,6 +438,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             if (options.invoice) {
                 // deactivate the validation button while we try to send the order
                 self.pos_widget.action_bar.set_button_disabled('validation', true);
+                self.pos_widget.action_bar.set_button_disabled('cf.validation', true);
                 self.pos_widget.action_bar.set_button_disabled('invoice', true);
 
                 var invoiced = self.pos.push_and_invoice_order(currentOrder);
