@@ -9,6 +9,9 @@
                 <field name="group_invoice_lines" position="after">
                     <field name="x_pending_payment" />
                 </field>
+                <field name="group_invoice_lines" position="after">
+                    <field name="x_post_payment" />
+                </field>
             </field>
         </record>
     </data>
