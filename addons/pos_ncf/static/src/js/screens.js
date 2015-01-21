@@ -400,19 +400,32 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             var forEach = Array.prototype.forEach;
             var hasNormalPmt = false;
             var hasPendingPmt = false;
+            var hasPospaidPmt = false;
             forEach.call(currentOrder.get('paymentLines').models, function(paymentLine) {
                 if (paymentLine.cashregister.journal.x_pending_payment) {
                     hasPendingPmt = true;
+                } else if(paymentLine.cashregister.journal.x_post_payment) {
+                    hasPospaidPmt = true;
                 } else {
                     hasNormalPmt = true;
                 }
-                if(currentOrder.immutable && !paymentLine.cashregister.journal.x_post_payment) {
-                    console.log('Factura es Pendiente y tiene un Metodo de Pago que NO ES pospago.');
-                    // TODO: Factura es Pendiente y tiene un Metodo de Pago que NO ES pospago.
-                    // TODO: Mostrar ERROR en popup indicando "Debe elegir un metodo de pago POSPAGO".
-                    // TODO: Esto con la finalidad de asegurar que se acredite a la Cuenta contable correcta.
-                }
             });
+
+            if (currentOrder.immutable && !hasPospaidPmt) {
+                self.pos_widget.screen_selector.show_popup('error',{
+                    'message': _t('Metodo de Pago Invalido'),
+                    'comment': _t('Solo se aceptan métodos de pago tipo Pospago para pagar las Ordenes Pendientes.')
+                });
+                return;
+            }
+
+            if (!currentOrder.immutable && hasPospaidPmt) {
+                self.pos_widget.screen_selector.show_popup('error',{
+                    'message': _t('Metodo de Pago Invalido'),
+                    'comment': _t('Los Metodos de Pago tipo Pospago solo pueden pagar Ordenes Pendientes.')
+                });
+                return;
+            }
 
             if (hasPendingPmt && hasNormalPmt) {
                 this.pos_widget.screen_selector.show_popup('error',{
