@@ -149,6 +149,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 }
 
                 currentOrder.setImmutable(true);
+                currentOrder.setPendingOrderId(this.new_order.id);
                 this.new_order = currentOrder;
             }
         },
@@ -267,7 +268,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 if(event.which === 13){
                     // click en enter ejecuta la orden usando
                     // comprobante para consumidor final (02).
-                    self.validate_order({ tcf: '02' });
+                    self.validate_order({tcf: '02'});
                 }else if(event.which === 27){
                     // click en escape vuelve hacia la
                     // pantalla anterior.
@@ -279,6 +280,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
         show: function() {
             this._super();
             var self = this;
+            var currentOrder = this.pos.get('selectedOrder');
 
             this.pos_widget.action_bar.destroy_buttons();
 
@@ -290,23 +292,44 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 }
             });
 
-            this.add_action_button({
-                label: _t('Consumidor Final'),
-                name: 'validation',
-                icon: '/point_of_sale/static/src/img/icons/png48/invoice.png',
-                click: function(){
-                    self.validate_order({ tcf: '02' });
-                }
-            });
+            if (currentOrder.get('paymentLines').models[0].cashregister.journal.x_pending_payment) {
+                this.add_action_button({
+                    label: _t('Recibir'),
+                    name: 'validation',
+                    icon: '/point_of_sale/static/src/img/icons/png48/invoice.png',
+                    click: function () {
+                        self.validate_order();
+                    }
+                });
 
-            this.add_action_button({
-                label: _t('Factura Fiscal'),
-                name: 'cf.validation',
-                icon: '/pos_ncf/static/src/img/ncf_icon.png',
-                click: function() {
-                    self.validate_order({ tcf: '01' });
-                }
-            });
+                this.add_action_button({
+                    label: _t('Express'),
+                    name: 'validation.express',
+                    icon: '/pos_ncf/static/src/img/express-order.png',
+                    click: function () {
+                        self.validate_order({express: true});
+                    }
+                });
+                this.pos_widget.action_bar.set_button_disabled('validation.express', true);
+            } else {
+                this.add_action_button({
+                    label: _t('Consumidor Final'),
+                    name: 'validation',
+                    icon: '/point_of_sale/static/src/img/icons/png48/invoice.png',
+                    click: function () {
+                        self.validate_order({tcf: '02'});
+                    }
+                });
+
+                this.add_action_button({
+                    label: _t('Comprobante Fiscal'),
+                    name: 'cf.validation',
+                    icon: '/pos_ncf/static/src/img/ncf_icon.png',
+                    click: function () {
+                        self.validate_order({tcf: '01'});
+                    }
+                });
+            }
 
             if( this.pos.config.iface_cashdrawer ){
                 this.add_action_button({
@@ -344,6 +367,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             this._super();
             if (this.pos_widget.action_bar) {
                 this.pos_widget.action_bar.set_button_disabled('cf.validation', !this.is_paid());
+                this.pos_widget.action_bar.set_button_disabled('validation.express', !this.is_paid());
             }
         },
 
@@ -436,17 +460,26 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             }
 
             var deliveryDate = new Date();
-            deliveryDate.setHours(17, 0);
-            if (deliveryDate.getDay() >= 5) {
-                deliveryDate.setDate(deliveryDate.getDate() + 3);
-            } else {
-                deliveryDate.setDate(deliveryDate.getDate() + 2);
-            }
+            if (options.express) {
+                if (deliveryDate.getHours() >= 12) {
+                    deliveryDate.setDate(deliveryDate.getDate() + 1);
+                    deliveryDate.setHours(9, 0);
+                } else {
+                    deliveryDate.setHours(deliveryDate.getHours() + 5, 0);
+                }
 
+            } else {
+                deliveryDate.setHours(17, 0);
+                if (deliveryDate.getDay() >= 5) {
+                    deliveryDate.setDate(deliveryDate.getDate() + 3);
+                } else {
+                    deliveryDate.setDate(deliveryDate.getDate() + 2);
+                }
+            }
             currentOrder['x_delivery_date'] = this.formatDate(deliveryDate) + ' ' + this.formatAMPM(deliveryDate);
 
             currentOrder['x_ncf'] = '';
-            if (hasNormalPmt) {
+            if (hasNormalPmt && options.tcf) {
                 // Get next NCF and set it to the current order.
                 currentOrder['x_ncf'] = this.pos.get_next_ncf(options.tcf);
                 if (options.tcf == '01') {
@@ -500,8 +533,9 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                     self.pos_widget.screen_selector.set_current_screen(self.next_screen);
                 }
             }
-            self.pos.push_ncf_sequence(options.tcf);
-
+            if (options.tcf) {
+                self.pos.push_ncf_sequence(options.tcf);
+            }
             // hide onscreen (iOS) keyboard
             setTimeout(function () {
                 document.activeElement.blur();
