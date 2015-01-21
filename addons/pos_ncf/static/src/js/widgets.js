@@ -29,7 +29,7 @@ function openerp_pos_ncf_widgets(instance, module) { //module is instance.point_
         }
     });
 
-        module.PosWidget = module.PosWidget.extend({
+    module.PosWidget = module.PosWidget.extend({
         // This method instantiates all the screens, widgets, etc. If you want to add new screens change the
         // startup screen, etc, override this method.
         build_widgets: function () {

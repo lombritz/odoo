@@ -406,6 +406,9 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 } else {
                     hasNormalPmt = true;
                 }
+                if(currentOrder.immutable && !paymentLine.cashregister.journal.x_post_payment) {
+                    // TODO: Factura es Pendiente y tiene un Metodo de Pago que NO ES pospago.
+                }
             });
 
             if (hasPendingPmt && hasNormalPmt) {
@@ -427,7 +430,6 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             currentOrder['x_delivery_date'] = this.formatDate(deliveryDate) + ' ' + this.formatAMPM(deliveryDate);
 
             currentOrder['x_ncf'] = '';
-            currentOrder['x_credito_fiscal'] = false;
             if (hasNormalPmt) {
                 // Get next NCF and set it to the current order.
                 currentOrder['x_ncf'] = this.pos.get_next_ncf(options.tcf);
