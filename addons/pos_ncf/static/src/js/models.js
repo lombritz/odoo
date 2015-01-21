@@ -2,6 +2,9 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
     var QWeb = instance.web.qweb,
         _t = instance.web._t;
 
+    var round_di = instance.web.round_decimals;
+    var round_pr = instance.web.round_precision;
+
     module.PosModel = module.PosModel.extend({
         show: function() {
             var self = this;
@@ -352,4 +355,61 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
             };
         }
     });
+
+    module.Orderline = module.Orderline.extend({
+        set_discount: function(discount){
+            if (this.order.immutable) {
+                this.pos.pos_widget.screen_selector.show_popup('error',{
+                    message: _t("No puede agregar descuento"),
+                    comment: _t('No puede agregar descuento a una orden pendiente')
+                });
+            } else {
+                var disc = Math.min(Math.max(parseFloat(discount) || 0, 0), 100);
+                this.discount = disc;
+                this.discountStr = '' + disc;
+                this.trigger('change', this);
+            }
+        },
+        set_quantity: function(quantity){
+            if (this.order.immutable) {
+                this.pos.pos_widget.screen_selector.show_popup('error',{
+                    message: _t("No puede cambiar cantidad de producto"),
+                    comment: _t('No puede cambiar cantidad de producto en una orden pendiente')
+                });
+            } else {
+                if (quantity === 'remove') {
+                    this.order.removeOrderline(this);
+                    return;
+                } else {
+                    var quant = parseFloat(quantity) || 0;
+                    var unit = this.get_unit();
+                    if (unit) {
+                        if (unit.rounding) {
+                            this.quantity = round_pr(quant, unit.rounding);
+                            this.quantityStr = this.quantity.toFixed(Math.ceil(Math.log(1.0 / unit.rounding) / Math.log(10)));
+                        } else {
+                            this.quantity = round_pr(quant, 1);
+                            this.quantityStr = this.quantity.toFixed(0);
+                        }
+                    } else {
+                        this.quantity = quant;
+                        this.quantityStr = '' + this.quantity;
+                    }
+                }
+                this.trigger('change', this);
+            }
+        },
+        set_unit_price: function(price){
+            if (this.order.immutable) {
+                this.pos.pos_widget.screen_selector.show_popup('error',{
+                    message: _t("No puede cambiar precio de un producto"),
+                    comment: _t('No puede cambiar precio de un producto en una orden pendiente')
+                });
+            } else {
+                this.price = round_di(parseFloat(price) || 0, this.pos.dp['Product Price']);
+                this.trigger('change', this);
+            }
+        }
+    });
+
 }

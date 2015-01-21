@@ -407,7 +407,10 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                     hasNormalPmt = true;
                 }
                 if(currentOrder.immutable && !paymentLine.cashregister.journal.x_post_payment) {
+                    console.log('Factura es Pendiente y tiene un Metodo de Pago que NO ES pospago.');
                     // TODO: Factura es Pendiente y tiene un Metodo de Pago que NO ES pospago.
+                    // TODO: Mostrar ERROR en popup indicando "Debe elegir un metodo de pago POSPAGO".
+                    // TODO: Esto con la finalidad de asegurar que se acredite a la Cuenta contable correcta.
                 }
             });
 

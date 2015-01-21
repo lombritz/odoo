@@ -26,12 +26,6 @@
                         <col width='50%' />
                         <col width='30%' />
                     </colgroup>
-                    <tr>
-                        <td>Cnt.</td>
-                        <td>Descripción</td>
-                        <td class="pos-right-align">Monto</td>
-                    </tr>
-                    <br />
                     <t t-if="orderlines">
                         <tr t-foreach="orderlines" t-as="orderline">
                             <td>
@@ -46,7 +40,12 @@
                                 </t>
                             </td>
                             <td class="pos-right-align">
-                                <t t-esc="widget.format_currency(orderline.price * orderline.quantity)"/>
+                                <t t-if="orderline.discount > 0">
+                                    <t t-esc="widget.format_currency((orderline.price - (orderline.price * (orderline.discount / 100))) * orderline.quantity)"/>
+                                </t>
+                                <t t-if="!orderline.discount">
+                                    <t t-esc="widget.format_currency(orderline.price * orderline.quantity)"/>
+                                </t>
                             </td>
                         </tr>
                     </t>
