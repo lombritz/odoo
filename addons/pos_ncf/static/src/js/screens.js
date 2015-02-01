@@ -134,7 +134,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             var currentOrder = this.pos.get('selectedOrder');
             if (this.has_order_changed()) {
                 currentOrder.get('orderLines').reset();
-                currentOrder.setImmutable(false);
+                currentOrder.set_immutable(false);
                 var forEach = Array.prototype.forEach;
                 forEach.call(this.new_order.get('orderLines').models, function(orderLine) {
                     currentOrder.addProduct(orderLine.product, {
@@ -148,8 +148,8 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                     currentOrder.set_client( this.new_order.get('client') );
                 }
 
-                currentOrder.setImmutable(true);
-                currentOrder.setPendingOrderId(this.new_order.id);
+                currentOrder.set_immutable(true);
+                currentOrder.set_pending_order_id(this.new_order.id);
                 this.new_order = currentOrder;
             }
         },
@@ -467,7 +467,6 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 } else {
                     deliveryDate.setHours(deliveryDate.getHours() + 5, 0);
                 }
-
             } else {
                 deliveryDate.setHours(17, 0);
                 if (deliveryDate.getDay() >= 5) {
@@ -479,7 +478,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             currentOrder['x_delivery_date'] = this.formatDate(deliveryDate) + ' ' + this.formatAMPM(deliveryDate);
 
             currentOrder['x_ncf'] = '';
-            if (hasNormalPmt && options.tcf) {
+            if ((hasNormalPmt || hasPospaidPmt) && options.tcf) {
                 // Get next NCF and set it to the current order.
                 currentOrder['x_ncf'] = this.pos.get_next_ncf(options.tcf);
                 if (options.tcf == '01') {

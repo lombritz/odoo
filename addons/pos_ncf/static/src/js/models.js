@@ -279,8 +279,14 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
     module.Order = module.Order.extend({
         immutable: false,
 
-        setImmutable: function(immutable) {
+        x_pending_order_id: 0,
+
+        set_immutable: function(immutable) {
             this.immutable = immutable;
+        },
+
+        set_pending_order_id: function(x_pending_order_id) {
+            this.x_pending_order_id = x_pending_order_id;
         },
 
         set_client: function(client){
@@ -351,7 +357,8 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                 uid: this.uid,
                 sequence_number: this.sequence_number,
                 x_ncf: this.x_ncf,
-                x_delivery_date: this.x_delivery_date
+                x_delivery_date: this.x_delivery_date,
+                x_pending_order_id: this.x_pending_order_id
             };
         }
     });

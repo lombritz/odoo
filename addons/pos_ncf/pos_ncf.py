@@ -44,6 +44,8 @@ class PosOrder(models.Model):
 
     x_delivery_date = fields.Datetime(string='Fecha de entrega')
 
+    x_pending_order_id = fields.Integer(string='Id de Orden Pendiente')
+
     def _order_fields(self, cr, uid, ui_order, context=None):
         return {
             'name': ui_order['name'],
@@ -53,7 +55,8 @@ class PosOrder(models.Model):
             'pos_reference': ui_order['name'],
             'partner_id': ui_order['partner_id'] or False,
             'x_ncf': ui_order['x_ncf'] or False,
-            'x_delivery_date': datetime.datetime.strptime(ui_order['x_delivery_date'], "%d/%m/%Y %I:%M %p"),
+            'x_delivery_date': datetime.datetime.strptime(ui_order['x_delivery_date'], "%d/%m/%Y %I:%M %p") or False,
+            'x_pending_order_id': ui_order['x_pending_order_id'] or False
         }
 
     def create_from_ui(self, cr, uid, orders, context=None):
@@ -70,6 +73,9 @@ class PosOrder(models.Model):
             to_invoice = tmp_order['to_invoice']
             order = tmp_order['data']
             order_id = self.create(cr, uid, self._order_fields(cr, uid, order, context=context),context)
+
+            pending_order = self.pool.get('pos.order').browse(cr, uid, order['x_pending_order_id'], context=context)
+            pending_order.write({'state': 'done'})
 
             wkf_signal = 'paid'
 
