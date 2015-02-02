@@ -135,6 +135,17 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                 }
             });
 
+            this.models.push({
+                model: 'product.template',
+                fields: ['id', 'list_price', 'x_express_price'],
+                domain: function(self) { return [['sale_ok', '=', true] , ['available_in_pos', '=', true]] },
+                loaded: function(self, product_templates) {
+                    _.each(product_templates, function(_product_template) {
+                        self.db.add_product_template(_product_template);
+                    });
+                }
+            });
+
             // We fetch the backend data on the server asynchronously. this is done only when the pos user interface is launched,
             // Any change on this data made on the server is thus not reflected on the point of sale until it is relaunched.
             // when all the data has loaded, we compute some stuff, and declare the Pos ready to be used.
@@ -289,6 +300,17 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
             this.x_pending_order_id = x_pending_order_id;
         },
 
+        addPaymentline: function(cashregister) {
+            var paymentLines = this.get('paymentLines');
+            var newPaymentline = new module.Paymentline({},{cashregister:cashregister, pos:this.pos});
+            if(cashregister.journal.type !== 'cash'){
+                newPaymentline.set_amount( Math.max(this.getDueLeft(),0) );
+            }
+            paymentLines.add(newPaymentline);
+            this.selectPaymentline(newPaymentline);
+
+        },
+
         set_client: function(client){
             if (this.immutable) {
                 this.pos.pos_widget.screen_selector.show_popup('error',{
@@ -312,7 +334,10 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                 attr.pos = this.pos;
                 attr.order = this;
                 var line = new module.Orderline({}, {pos: this.pos, order: this, product: product});
-
+                var product_template = this.pos.db.get_product_template_by_id(product.product_tmpl_id);
+                if (product_template) {
+                    line.set_express_price(product_template['x_express_price']);
+                }
                 if(options.quantity !== undefined){
                     line.set_quantity(options.quantity);
                 }
@@ -364,6 +389,20 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
     });
 
     module.Orderline = module.Orderline.extend({
+        express_price: 0,
+        set_express_price: function(express_price){
+            this.express_price = express_price;
+        },
+        get_express_price: function(){
+            return this.express_price;
+        },
+        get_unit_price: function(){
+            if (this.order.express_service) {
+                return this.price + this.express_price;
+            } else {
+                return this.price;
+            }
+        },
         set_discount: function(discount){
             if (this.order.immutable) {
                 this.pos.pos_widget.screen_selector.show_popup('error',{

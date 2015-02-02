@@ -45,6 +45,7 @@ This module adds Dominican regulation requirements to the Point of Sale:
         'views/pos_ncf_config.xml',
         'views/pos_ncf_payments.xml',
         'views/templates.xml',
+        'views/product_view.xml'
     ],
     'qweb':[
         'static/src/xml/pos_ncf.xml',

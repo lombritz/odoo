@@ -177,3 +177,7 @@ class IrSequence(models.Model):
 
     x_pos_config_id = fields.Many2one(comodel_name='pos.config', string='TPV')
 
+class ProductTemplate(models.Model):
+    _inherit = 'product.template'
+
+    x_express_price = fields.Float(string='Precio Expreso')

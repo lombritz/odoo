@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="pos_ncf.product_template_form_view">
+            <field name="inherit_id" ref="product.product_template_form_view" />
+            <field name="name">product.template.common.form</field>
+            <field name="model">product.template</field>
+            <field name="arch" type="xml">
+                <field name="list_price" position="after">
+                    <field name="x_express_price" />
+                </field>
+            </field>
+        </record>
+    </data>
+</openerp>

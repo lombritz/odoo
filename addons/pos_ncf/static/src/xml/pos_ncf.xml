@@ -124,9 +124,14 @@
                     </td>
                     <td>
                         <t t-esc="orderline.get_product().display_name"/>
-                         <t t-if="orderline.get_discount() > 0">
+                        <t t-if="orderline.get_discount() > 0">
                             <div class="pos-disc-font">
                                 Con un <t t-esc="orderline.get_discount()"/>% de descuento
+                            </div>
+                        </t>
+                        <t t-if="order.express_service">
+                            <div class="pos-disc-font">
+                                Expreso: <t t-esc="widget.format_currency(orderline.get_express_price())"/>
                             </div>
                         </t>
                     </td>

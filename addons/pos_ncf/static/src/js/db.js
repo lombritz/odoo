@@ -17,6 +17,11 @@ function openerp_pos_ncf_db(instance, module) { //module is instance.point_of_sa
             this.pending_orderlines_by_orderid = {};
             this.pending_paymentlines_by_orderid = {};
 
+            this.product_templates_by_id = {};
+        },
+
+        add_product_template: function(product_template) {
+            this.product_templates_by_id[product_template.id] = product_template;
         },
 
         add_pending_orderlines: function(order, orderlines) {
@@ -84,6 +89,10 @@ function openerp_pos_ncf_db(instance, module) { //module is instance.point_of_sa
                 str += '|' + order.partner.phone;
             }
             return str + '\n';
+        },
+
+        get_product_template_by_id: function(id) {
+            return this.product_templates_by_id[id];
         },
 
         get_pending_order_by_id: function (id) {

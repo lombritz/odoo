@@ -301,13 +301,19 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                         self.validate_order();
                     }
                 });
-
                 this.add_action_button({
-                    label: _t('Express'),
+                    label: (currentOrder['express_service'] ? _t('Express') : _t('Normal')),
                     name: 'validation.express',
                     icon: '/pos_ncf/static/src/img/express-order.png',
-                    click: function () {
-                        self.validate_order({express: true});
+                    click: function (btn) {
+                        btn.currentTarget.innerHTML = "<div class='icon'><img src='/pos_ncf/static/src/img/express-order.png'><div class='iconlabel'>" + (currentOrder['express_service'] ? _t('Normal') : _t('Express')) + "</div></div>";
+                        currentOrder['express_service'] = !currentOrder['express_service'];
+                        var paymentLine = currentOrder.get('paymentLines').models[0];
+                        if (paymentLine.cashregister.journal.x_pending_payment) {
+                            currentOrder.removePaymentline(paymentLine);
+                            currentOrder.addPaymentline(paymentLine.cashregister);
+                            self.update_payment_summary();// disables button if not paid.
+                        }
                     }
                 });
                 this.pos_widget.action_bar.set_button_disabled('validation.express', true);
@@ -460,7 +466,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             }
 
             var deliveryDate = new Date();
-            if (options.express) {
+            if (currentOrder['express_service']) {
                 if (deliveryDate.getHours() >= 12) {
                     deliveryDate.setDate(deliveryDate.getDate() + 1);
                     deliveryDate.setHours(9, 0);
