@@ -434,6 +434,16 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 }
             }
 
+            // Removes pending order from UI list.
+            if (currentOrder.x_pending_order_id) {
+                // removes index from pending orders sorted.
+                var index = this.pos.db.pending_order_sorted.indexOf(currentOrder.x_pending_order_id);
+                this.pos.db.pending_order_sorted.splice(index, 1);
+
+                // sets value on index to undefined
+                delete this.pos.db.pending_order_by_id[currentOrder.x_pending_order_id];
+            }
+
             if (this.pos.config.iface_cashdrawer) {
                 this.pos.proxy.open_cashbox();
             }
