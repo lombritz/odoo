@@ -133,6 +133,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
         set_pending_order: function() {
             var currentOrder = this.pos.get('selectedOrder');
             if (this.has_order_changed()) {
+                currentOrder.x_express_order = this.new_order.get('order').x_express_order;
                 currentOrder.get('orderLines').reset();
                 currentOrder.set_immutable(false);
                 var forEach = Array.prototype.forEach;
@@ -150,6 +151,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
 
                 currentOrder.set_immutable(true);
                 currentOrder.set_pending_order_id(this.new_order.id);
+
                 this.new_order = currentOrder;
             }
         },
@@ -292,6 +294,22 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 }
             });
 
+            this.add_action_button({
+                label: (currentOrder.x_express_order ? _t('Express') : _t('Normal')),
+                name: 'validation.express',
+                icon: '/pos_ncf/static/src/img/express-order.png',
+                click: function (btn) {
+                    btn.currentTarget.innerHTML = "<div class='icon'><img src='/pos_ncf/static/src/img/express-order.png'><div class='iconlabel'>" + (currentOrder.x_express_order ? _t('Normal') : _t('Express')) + "</div></div>";
+                    currentOrder.x_express_order = !currentOrder.x_express_order;
+                    self.update_payment_summary();
+                    var paymentLine = currentOrder.get('paymentLines').models[0];
+                    if (paymentLine.cashregister.journal.type != 'cash') {
+                        currentOrder.removePaymentline(paymentLine);
+                        currentOrder.addPaymentline(paymentLine.cashregister);
+                    }
+                }
+            });
+
             if (currentOrder.get('paymentLines').models[0].cashregister.journal.x_pending_payment) {
                 this.add_action_button({
                     label: _t('Recibir'),
@@ -301,22 +319,6 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                         self.validate_order();
                     }
                 });
-                this.add_action_button({
-                    label: (currentOrder['express_service'] ? _t('Express') : _t('Normal')),
-                    name: 'validation.express',
-                    icon: '/pos_ncf/static/src/img/express-order.png',
-                    click: function (btn) {
-                        btn.currentTarget.innerHTML = "<div class='icon'><img src='/pos_ncf/static/src/img/express-order.png'><div class='iconlabel'>" + (currentOrder['express_service'] ? _t('Normal') : _t('Express')) + "</div></div>";
-                        currentOrder['express_service'] = !currentOrder['express_service'];
-                        var paymentLine = currentOrder.get('paymentLines').models[0];
-                        if (paymentLine.cashregister.journal.x_pending_payment) {
-                            currentOrder.removePaymentline(paymentLine);
-                            currentOrder.addPaymentline(paymentLine.cashregister);
-                            self.update_payment_summary();// disables button if not paid.
-                        }
-                    }
-                });
-                this.pos_widget.action_bar.set_button_disabled('validation.express', true);
             } else {
                 this.add_action_button({
                     label: _t('Consumidor Final'),
@@ -359,6 +361,16 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             return formattedDate;
         },
 
+
+        formatDisplayDate: function (date) {
+            var formattedDate = "";
+            var weekday = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+            var today = new Date();
+            var isToday = date.getDay() == today.getDay() && date.getMonth() == today.getMonth() && date.getYear() == today.getYear();
+            formattedDate += (isToday ? 'hoy' : weekday[date.getDay()] + ' ' + date.getDate());
+            return formattedDate;
+        },
+
         formatAMPM: function (date) {
             var hours = date.getHours();
             var minutes = date.getMinutes();
@@ -373,7 +385,6 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             this._super();
             if (this.pos_widget.action_bar) {
                 this.pos_widget.action_bar.set_button_disabled('cf.validation', !this.is_paid());
-                this.pos_widget.action_bar.set_button_disabled('validation.express', !this.is_paid());
             }
         },
 
@@ -466,13 +477,11 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             }
 
             var deliveryDate = new Date();
-            if (currentOrder['express_service']) {
-                if (deliveryDate.getHours() >= 12) {
-                    deliveryDate.setDate(deliveryDate.getDate() + 1);
-                    deliveryDate.setHours(9, 0);
-                } else {
-                    deliveryDate.setHours(deliveryDate.getHours() + 5, 0);
-                }
+            var hours = deliveryDate.getHours();
+            var minutes = deliveryDate.getMinutes();
+            if (currentOrder.x_express_order) {
+                // express orders should be delivered same day or not accepted.
+                deliveryDate.setHours(hours <= 17 ? hours + 2 : 19, hours <= 17 ? minutes :  0);
             } else {
                 deliveryDate.setHours(17, 0);
                 if (deliveryDate.getDay() >= 5) {
@@ -482,6 +491,8 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 }
             }
             currentOrder['x_delivery_date'] = this.formatDate(deliveryDate) + ' ' + this.formatAMPM(deliveryDate);
+            currentOrder['x_display_delivery_date'] = 'Para entrega ' + this.formatDisplayDate(deliveryDate) + ' a ' +
+            (hours != 1 && hours != 13 ? 'las ' : 'la ') + this.formatAMPM(deliveryDate);
 
             currentOrder['x_ncf'] = '';
             if ((hasNormalPmt || hasPospaidPmt) && options.tcf) {

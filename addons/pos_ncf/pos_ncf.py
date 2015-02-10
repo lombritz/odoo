@@ -46,6 +46,8 @@ class PosOrder(models.Model):
 
     x_pending_order_id = fields.Integer(string='Id de Orden Pendiente')
 
+    x_express_order = fields.Boolean(string='Servicio Expreso')
+
     def _order_fields(self, cr, uid, ui_order, context=None):
         return {
             'name': ui_order['name'],
@@ -56,8 +58,20 @@ class PosOrder(models.Model):
             'partner_id': ui_order['partner_id'] or False,
             'x_ncf': ui_order['x_ncf'] or False,
             'x_delivery_date': datetime.datetime.strptime(ui_order['x_delivery_date'], "%d/%m/%Y %I:%M %p") or False,
-            'x_pending_order_id': ui_order['x_pending_order_id'] or False
+            'x_pending_order_id': ui_order['x_pending_order_id'] or False,
+            'x_express_order': ui_order['x_express_order'] or False
         }
+
+    def test_paid(self, cr, uid, ids, context=None):
+        for order in self.browse(cr, uid, ids, context=context):
+            if order.lines and not order.amount_total:
+                return True
+            if order.x_express_order and order.amount_paid > order.amount_total:
+                return True
+            if (not order.lines) or (not order.statement_ids) or \
+                    (abs(order.amount_total - order.amount_paid) > 0.00001):
+                return False
+        return True
 
     def create_from_ui(self, cr, uid, orders, context=None):
         # Keep only new orders
@@ -74,8 +88,9 @@ class PosOrder(models.Model):
             order = tmp_order['data']
             order_id = self.create(cr, uid, self._order_fields(cr, uid, order, context=context),context)
 
-            pending_order = self.pool.get('pos.order').browse(cr, uid, order['x_pending_order_id'], context=context)
-            pending_order.write({'state': 'done'})
+            if order['x_pending_order_id']:
+                pending_order = self.pool.get('pos.order').browse(cr, uid, order['x_pending_order_id'], context=context)
+                pending_order.write({'state': 'done'})
 
             wkf_signal = 'paid'
 

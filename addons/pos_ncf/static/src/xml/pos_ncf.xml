@@ -67,7 +67,7 @@
                     <tr class="emph">
                         <td>Total:</td>
                         <td class="pos-right-align">
-                            <t t-esc="widget.format_currency(order.get('order').amount_total)"/>
+                            <t t-esc="widget.format_currency(order.get('order').amount_paid)"/>
                         </td>
                     </tr>
                 </table>
@@ -129,14 +129,9 @@
                                 Con un <t t-esc="orderline.get_discount()"/>% de descuento
                             </div>
                         </t>
-                        <t t-if="order.express_service">
-                            <div class="pos-disc-font">
-                                Expreso: <t t-esc="widget.format_currency(orderline.get_express_price())"/>
-                            </div>
-                        </t>
                     </td>
                     <td class="pos-right-align">
-                        <t t-esc="widget.format_currency(orderline.get_display_price())"/>
+                        <t t-esc="widget.format_currency(orderline.get_all_prices().priceWithoutTax)"/>
                     </td>
                 </tr>
             </table>
@@ -145,21 +140,27 @@
                 <tr>
                     <td>Subtotal:</td>
                     <td class="pos-right-align">
-                        <t t-esc="widget.format_currency(order.getSubtotal())"/>
+                        <t t-esc="widget.format_currency(order.getTotalTaxExcluded())"/>
                     </td>
                 </tr>
                 <t t-foreach="order.getTaxDetails()" t-as="taxdetail">
                     <tr>
-                        <td><t t-esc="taxdetail.name" /></td>
+                        <td><t t-esc="taxdetail.name" />:</td>
                         <td class="pos-right-align">
                             <t t-esc="widget.format_currency(taxdetail.amount)" />
                         </td>
                     </tr>
                 </t>
-                <tr>
+                <tr t-if="order.getDiscountTotal() > 0">
                     <td>Descuento:</td>
                     <td class="pos-right-align">
                         <t t-esc="widget.format_currency(order.getDiscountTotal())"/>
+                    </td>
+                </tr>
+                <tr t-if="order.x_express_order">
+                    <td>Servicio expreso:</td>
+                    <td class="pos-right-align">
+                        <t t-esc="widget.format_currency(order.getTotalExpress())"/>
                     </td>
                 </tr>
                 <tr class="emph">
@@ -192,9 +193,8 @@
             <br />
             <table>
                 <tr>
-                    <td>Fecha de entrega:</td>
-                    <td class="pos-right-align">
-                        <t t-esc="order.x_delivery_date" />
+                    <td>
+                        <t t-esc="order.x_display_delivery_date" />
                     </td>
                 </tr>
             </table>
@@ -206,8 +206,8 @@
             </t>
             <t t-if="widget.pos.config.receipt_footer">
                 <br />
-                <div style='text-align:center'>
-                    <t t-esc="widget.pos.config.receipt_footer" />
+                <div style='text-align:left; padding:0 10px 0 10px;'>
+                    <pre><t t-esc="widget.pos.config.receipt_footer" /></pre>
                 </div>
             </t>
         </div>

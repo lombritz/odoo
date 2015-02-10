@@ -114,6 +114,7 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                         order.set('x_ncf', _order.x_ncf);
                         order.set('creationDate', _order.date_order);
                         order.set('companyName', _order.company_id[1]);
+                        order.set('x_express_order', _order.x_express_order);
 
                         new instance.web.Model('pos.order.line')
                             .query([])
@@ -292,6 +293,8 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
 
         x_pending_order_id: 0,
 
+        x_express_order: false,
+
         set_immutable: function(immutable) {
             this.immutable = immutable;
         },
@@ -300,6 +303,7 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
             this.x_pending_order_id = x_pending_order_id;
         },
 
+        // HERE THE PAYMENT AMOUNT IS SET WHEN PAYMENT IS NOT CASH.
         addPaymentline: function(cashregister) {
             var paymentLines = this.get('paymentLines');
             var newPaymentline = new module.Paymentline({},{cashregister:cashregister, pos:this.pos});
@@ -309,6 +313,29 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
             paymentLines.add(newPaymentline);
             this.selectPaymentline(newPaymentline);
 
+        },
+
+        // get total + express with taxes.
+        getTotalTaxIncluded: function() {
+            var self = this;
+            return (this.get('orderLines')).reduce((function(sum, orderLine) {
+                return sum + orderLine.get_price_with_tax() +
+                     (self.x_express_order ? orderLine.get_express_price() * orderLine.get_quantity() : 0);
+            }), 0);
+        },
+
+        getDueLeft: function() {
+            return this.getTotalTaxIncluded() - this.getPaidTotal();
+        },
+
+        getTotalExpress: function() {
+            if ( this.x_express_order ) {
+                return (this.get('orderLines')).reduce((function(sum, orderLine){
+                    return sum + (orderLine.get_express_price() * orderLine.get_quantity());
+                }), 0);
+            } else {
+                return 0;
+            }
         },
 
         set_client: function(client){
@@ -383,7 +410,8 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                 sequence_number: this.sequence_number,
                 x_ncf: this.x_ncf,
                 x_delivery_date: this.x_delivery_date,
-                x_pending_order_id: this.x_pending_order_id
+                x_pending_order_id: this.x_pending_order_id,
+                x_express_order: this.x_express_order
             };
         }
     });
@@ -395,13 +423,6 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
         },
         get_express_price: function(){
             return this.express_price;
-        },
-        get_unit_price: function(){
-            if (this.order.express_service) {
-                return this.price + this.express_price;
-            } else {
-                return this.price;
-            }
         },
         set_discount: function(discount){
             if (this.order.immutable) {
