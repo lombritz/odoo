@@ -90,7 +90,13 @@ class PosOrder(models.Model):
 
             if order['x_pending_order_id']:
                 pending_order = self.pool.get('pos.order').browse(cr, uid, order['x_pending_order_id'], context=context)
-                pending_order.write({'state': 'done'})
+                if pending_order.session_id.state == 'closed':
+                    pending_order.write({'state': 'done'})
+                elif pending_order.session_id.state == 'opened':
+                    pending_order.write({'state': 'paid'})
+                else:
+                    pending_order.write({'state': 'paid'})
+
 
             wkf_signal = 'paid'
 
@@ -112,7 +118,10 @@ class PosOrder(models.Model):
                     if not len(cash_journal_ids):
                         raise osv.except_osv( _('error!'),
                                               _("No cash statement found for this session. Unable to record returned cash."))
-                    cash_journal = cash_journal_ids[0].journal_id
+                    for payments in order['statement_ids']:
+                        temp_cash_journal = self.pool.get('account.journal').browse(cr, uid, payments[2]['journal_id'], context=context)
+                        if temp_cash_journal.type == 'cash':
+                            cash_journal = temp_cash_journal
                 self.add_payment(cr, uid, order_id, {
                     'amount': -order['amount_return'],
                     'payment_date': time.strftime('%Y-%m-%d %H:%M:%S'),

@@ -558,10 +558,6 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 this.pos.db.pending_order_sorted.splice(index, 1);
                 delete this.pos.db.pending_order_by_id[currentOrder.x_pending_order_id];
             }
-            if (hasPendingPmt) {
-                // TODO: add pending order from db, invoke an asynchronous query.
-                //this.pos.db.add_pending_orders([currentOrder]);
-            }
             // hide onscreen (iOS) keyboard
             setTimeout(function () {
                 document.activeElement.blur();
