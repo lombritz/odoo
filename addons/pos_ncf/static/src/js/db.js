@@ -80,14 +80,13 @@ function openerp_pos_ncf_db(instance, module) { //module is instance.point_of_sa
         },
 
         _pending_order_search_string: function (order) {
-            var str = '' + order.id + ':' + order.name;
-            if(order.x_ncf){
-                str += '|' + order.x_ncf;
+            var str = '' + order.id + ':' + order.get('name');
+            var client = order.get('client');
+            if(client) {
+                str += '|' + client.name;
+                str += '|' + client.phone;
             }
-            if(order.partner){
-                str += '|' + order.partner.name;
-                str += '|' + order.partner.phone;
-            }
+            console.log(str);
             return str + '\n';
         },
 
