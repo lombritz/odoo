@@ -86,7 +86,6 @@ function openerp_pos_ncf_db(instance, module) { //module is instance.point_of_sa
                 str += '|' + client.name;
                 str += '|' + client.phone;
             }
-            console.log(str);
             return str + '\n';
         },
 
