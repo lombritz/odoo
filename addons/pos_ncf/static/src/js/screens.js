@@ -540,6 +540,13 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 self.pos.push_order(currentOrder);
                 if (self.pos.config.iface_print_via_proxy) {
                     var receipt = currentOrder.export_for_printing();
+                    console.log(QWeb.render('XmlReceipt', {
+                        receipt: receipt,
+                        widget: self
+                    }));
+                    // TODO: validate XML Receipt Layout in javascript console to save paper.
+                    // TODO: buy 2 paper rolls at Cecomsa (80mm and 58mm).
+                    // TODO: test both paper sizes.
                     self.pos.proxy.print_receipt(QWeb.render('XmlReceipt', {
                         receipt: receipt,
                         widget: self
@@ -567,6 +574,23 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
     });
 
     module.ReceiptScreenWidget = module.ReceiptScreenWidget.extend({
+        refresh: function() {
+            var order = this.pos.get('selectedOrder');
+            var product_quantity = 0;
+            var i = 0;
+            while (i < order.get('orderLines').models.length) {
+                console.log(order.get('orderLines').models[i]);
+                product_quantity += order.get('orderLines').models[i].quantity;
+                i++;
+            }
+            $('.pos-receipt-container', this.$el).html(QWeb.render('PosTicket',{
+                widget:this,
+                order: order,
+                orderlines: order.get('orderLines').models,
+                paymentlines: order.get('paymentLines').models,
+                prod_qty: product_quantity
+            }));
+        },
         print: function () {
             var self = this;
 

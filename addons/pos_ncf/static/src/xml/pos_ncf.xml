@@ -193,20 +193,24 @@
             <br />
             <table>
                 <tr>
+                    <span style="font-size:18px; font-weight:bold">Total <t t-esc="prod_qty"/> piezas.</span>
+                </tr>
+                <tr>
                     <td>
                         <t t-esc="order.x_display_delivery_date" />
                     </td>
                 </tr>
             </table>
             <t t-if="order.get('client')">
-                <br /><br />
-                <div style="text-align:center">
-                    <h1><t t-esc="order.get('client').name"/></h1>
+                <div style="padding-top:10px">
+                    <div style="font-size:12px; text-decoration:underline">Cliente:</div>
+                    <div style="text-align:center; font-size:40px">
+                        <t t-esc="order.get('client').name"/>
+                    </div>
                 </div>
             </t>
             <t t-if="widget.pos.config.receipt_footer">
-                <br />
-                <div style='text-align:left; padding:0 10px 0 10px;'>
+                <div style='text-align:left; padding:10px 10px 0 10px;'>
                     <pre><t t-esc="widget.pos.config.receipt_footer" /></pre>
                 </div>
             </t>
@@ -275,6 +279,7 @@
     </t>
 
     <t t-name="XmlReceipt">
+        <!-- TODO: check why this template fails. -->
         <receipt align='center' width='40' value-thousands-separator='' >
             <t t-if='receipt.company.logo'>
                 <img t-att-src='receipt.company.logo' />
