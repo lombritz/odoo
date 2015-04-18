@@ -1,5 +1,7 @@
 from openerp.osv import fields, osv, orm
 import time as the_time
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import logging
 import base64
 
@@ -14,17 +16,23 @@ class dgii_report(osv.osv):
         'state': fields.selection([('draft', 'Borrador'), ('confirmed', 'Confirmado')], 'Estado')
     }
     _defaults = {
-        'name': lambda *a: 'DGII_F_606_' + the_time.strftime("%Y%m"),
+        'name': lambda *a: 'DGII_F_606_' + the_time.strftime("%Y%m") + '.txt',
         'state': 'draft'
     }
 
+    # account_invoice.state = 'open', 'paid', 'draft'
     def generate_606(self, cr, uid, ids, context=None):
         file_content = "606"
         period = "201503"
         body = ""
+        lastmonth = datetime.today() - relativedelta(months=1)
+        period = lastmonth.strftime('%Y%m')
+        _logging.info(lastmonth.strftime('%Y-%m-31'))
         cr.execute('''select '--->RNC_SUP<---' as x_rnc, p.name as pname, ai.* from account_invoice  ai, res_partner p
-                       where ai.partner_id = p.id and ai.type = 'in_invoice' order by ai.id;
-        ''')
+                       where ai.partner_id = p.id and ai.type = 'in_invoice'
+			and ai.date_invoice <= %s
+			 order by ai.id;
+        ''', [lastmonth.strftime('%Y-%m-31')])
 
         rows = cr.dictfetchall()
         po_count = cr.rowcount
@@ -35,7 +43,7 @@ class dgii_report(osv.osv):
         another_a_untaexed = 0
 
         for r in rows:
-      	    body += r['x_rnc']
+      	    body += r['x_vat'].zfill(11)  # rnc/cedula del proveedor.... 
       	    if r['supplier_invoice_number'] != None:
                body += "%s" % (r['supplier_invoice_number'])
 	    else:
@@ -50,9 +58,9 @@ class dgii_report(osv.osv):
             body += '%012.2f' % another_a_untaexed
             body += '\n'
 
-        cr.execute("select '--->RNC_COM<---' as x_rnc, name from res_company") # agregar x_rnc
+        cr.execute("select '--->RNC_COM<---' as x_rnc, name, company_registry from res_company") # agregar x_rnc
         company_info  = cr.dictfetchone()
-        file_content += company_info['x_rnc']
+        file_content += company_info['company_registry']
         file_content += period
         file_content += '%012d' % po_count
         file_content += '%012.2f' % a_total

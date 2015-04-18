@@ -38,7 +38,7 @@
             <field name="view_mode">tree,form</field>
         </record>
 
-        <menuitem id="dgii_report_menu01" name="Reportes DGII" sequence="500"/>
+        <menuitem id="dgii_report_menu01" name="Reportes DGII" sequence="55"/>
         <menuitem id="dgii_report_menu02" parent="dgii_report_menu01" name="Reportes DGII" sequence="0"/>
         <menuitem id="dgii_report_606_menu" parent="dgii_report_menu02" name="Reporte 606" sequence="1"
                 action="dgii_report_action"/>
