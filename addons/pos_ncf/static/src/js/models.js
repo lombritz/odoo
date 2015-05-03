@@ -384,6 +384,77 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                 this.selectLine(this.getLastOrderline());
             }
         },
+        // exports a JSON for receipt printing
+
+        // TODO: add new data: NCF, client info, etc... and refactor XML receipt leyout.
+        export_for_printing: function(){
+            var orderlines = [];
+            this.get('orderLines').each(function(orderline){
+                orderlines.push(orderline.export_for_printing());
+            });
+
+            var paymentlines = [];
+            this.get('paymentLines').each(function(paymentline){
+                paymentlines.push(paymentline.export_for_printing());
+            });
+            var client  = this.get('client');
+            var cashier = this.pos.cashier || this.pos.user;
+            var company = this.pos.company;
+            var shop    = this.pos.shop;
+            var date = new Date();
+
+            return {
+                orderlines: orderlines,
+                paymentlines: paymentlines,
+                subtotal: this.getSubtotal(),
+                total_with_tax: this.getTotalTaxIncluded(),
+                total_without_tax: this.getTotalTaxExcluded(),
+                total_tax: this.getTax(),
+                total_paid: this.getPaidTotal(),
+                total_discount: this.getDiscountTotal(),
+                tax_details: this.getTaxDetails(),
+                change: this.getChange(),
+                name : this.getName(),
+                client: client ? client : null,
+                x_ncf: this.x_ncf,
+                x_delivery_date: this.x_delivery_date,
+                x_pending_order_id: this.x_pending_order_id,
+                x_express_order: this.x_express_order,
+                invoice_id: null,   //TODO
+                cashier: cashier ? cashier.name : null,
+                header: this.pos.config.receipt_header || '',
+                footer: this.pos.config.receipt_footer || '',
+                precision: {
+                    price: 2,
+                    money: 2,
+                    quantity: 3,
+                },
+                date: {
+                    year: date.getFullYear(),
+                    month: date.getMonth(),
+                    date: date.getDate(),       // day of the month
+                    day: date.getDay(),         // day of the week
+                    hour: date.getHours(),
+                    minute: date.getMinutes() ,
+                    isostring: date.toISOString(),
+                    localestring: date.toLocaleString(),
+                },
+                company:{
+                    email: company.email,
+                    website: company.website,
+                    company_registry: company.company_registry,
+                    contact_address: company.partner_id[1],
+                    vat: company.vat,
+                    name: company.name,
+                    phone: company.phone,
+                    logo:  this.pos.company_logo_base64,
+                },
+                shop:{
+                    name: shop.name,
+                },
+                currency: this.pos.currency,
+            };
+        },
 
         export_as_JSON: function() {
             var orderLines, paymentLines;

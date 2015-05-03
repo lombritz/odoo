@@ -97,6 +97,10 @@
                     <br />
                     Telefono: <t t-esc="order.get('client').phone"/>
                 </t>
+                <t t-if="order.get('client').vat">
+                    <br />
+                    VAT: <t t-esc="order.get('client').vat"/>
+                </t>
                 <hr />
             </t>
             <t t-if="order.x_receipt_type">
@@ -203,7 +207,6 @@
             </table>
             <t t-if="order.get('client')">
                 <div style="padding-top:10px">
-                    <div style="font-size:12px; text-decoration:underline">Cliente:</div>
                     <div style="text-align:center; font-size:40px">
                         <t t-esc="order.get('client').name"/>
                     </div>
@@ -279,7 +282,7 @@
     </t>
 
     <t t-name="XmlReceipt">
-        <!-- TODO: check why this template fails. -->
+        <!-- TODO: check why this template fails -->
         <receipt align='center' width='40' value-thousands-separator='' >
             <t t-if='receipt.company.logo'>
                 <img t-att-src='receipt.company.logo' />

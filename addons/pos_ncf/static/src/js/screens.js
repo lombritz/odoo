@@ -500,6 +500,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 currentOrder['x_ncf'] = this.pos.get_next_ncf(options.tcf);
                 if (options.tcf == '01') {
                     currentOrder['x_receipt_type'] = 'Válida para Crédito Fiscal';
+                    // TODO: validar que el cliente TENGA Cedula o RNC, si no no permitir la orden.
                 } else {
                     currentOrder['x_receipt_type'] = 'Factura de Consumidor Final';
                 }
@@ -544,9 +545,9 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                         receipt: receipt,
                         widget: self
                     }));
-                    // TODO: validate XML Receipt Layout in javascript console to save paper.
-                    // TODO: buy 2 paper rolls at Cecomsa (80mm and 58mm).
-                    // TODO: test both paper sizes.
+                    // TODO: validate XML Receipt Layout in javascript console to save paper
+                    // TODO: buy 2 paper rolls at Cecomsa (80mm and 58mm)
+                    // TODO: test both paper sizes
                     self.pos.proxy.print_receipt(QWeb.render('XmlReceipt', {
                         receipt: receipt,
                         widget: self

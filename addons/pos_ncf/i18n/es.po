@@ -1,0 +1,55 @@
+# Spanish translation for openobject-addons
+# Copyright (c) 2015 Rosetta Contributors and Canonical Ltd 2015
+# This file is distributed under the same license as the openobject-addons package.
+# JAIME ROJAS <CODEFIRST@ICLOUD.COM>, 2015.
+#
+#. module: point_of_sale
+#. openerp-web
+#: code:addons/point_of_sale/static/src/xml/pos.xml:353
+#: code:addons/point_of_sale/static/src/xml/pos.xml:400
+#, python-format
+msgid "Tax ID"
+msgstr "Cédula/RNC"
+
+#. module: point_of_sale
+#. openerp-web
+#: code:addons/pos_ncf/static/src/xml/pos_ncf.xml:318
+#, python-format
+msgid "Served by"
+msgstr "Atendido por"
+
+#. module: pos_ncf
+#. openerp-web
+#: code:addons/pos_ncf/static/src/xml/pos_ncf.xml:299
+#, python-format
+msgid "NCF:"
+msgstr "NCF:"
+
+#. module: pos_ncf
+#. openerp-web
+#: code:addons/pos_ncf/static/src/xml/pos_ncf.xml:302
+#, python-format
+msgid "Delivery Date:"
+msgstr "Entrega:"
+
+#. module: pos_ncf
+#. openerp-web
+#: code:addons/pos_ncf/static/src/xml/pos_ncf.xml:305
+#, python-format
+msgid "Customer:"
+msgstr "Cliente:"
+
+#. module: point_of_sale
+#. openerp-web
+#: code:addons/pos_ncf/static/src/xml/pos_ncf.xml:102
+#: code:addons/pos_ncf/static/src/xml/pos_ncf.xml:307
+#, python-format
+msgid "VAT:"
+msgstr "Cedula/RNC:"
+
+#. module: point_of_sale
+#. openerp-web
+#: code:addons/pos_ncf/static/src/js/screens.js:169
+#, python-format
+msgid "Set Pending Order"
+msgstr "Establecer Orden Pend."
