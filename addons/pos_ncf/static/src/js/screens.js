@@ -267,11 +267,12 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             var self = this;
             this._super(parent, options);
             this.hotkey_handler = function(event){
-                if(event.which === 13){
-                    // click en enter ejecuta la orden usando
-                    // comprobante para consumidor final (02).
-                    self.validate_order({tcf: '02'});
-                }else if(event.which === 27){
+                //if(event.which === 13){
+                //    // click en enter ejecuta la orden usando
+                //    // comprobante para consumidor final (02).
+                //    self.validate_order({tcf: '02'});
+                //}else
+                if(event.which === 27){
                     // click en escape vuelve hacia la
                     // pantalla anterior.
                     self.back();
@@ -334,7 +335,12 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                     name: 'cf.validation',
                     icon: '/pos_ncf/static/src/img/ncf_icon.png',
                     click: function () {
-                        self.validate_order({tcf: '01'});
+                        self.pos_widget.screen_selector.show_popup('confirm',{
+                            message: _t('Seguro que desea imprimir factura con Comprobante Fiscal?'),
+                            confirm: function() {
+                                self.validate_order({tcf: '01'});
+                            }
+                        });
                     }
                 });
             }
@@ -499,7 +505,6 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 // Get next NCF and set it to the current order.
                 currentOrder['x_ncf'] = this.pos.get_next_ncf(options.tcf);
                 if (options.tcf == '01') {
-                    // TODO: Are you sure you want to print a fiscal receipt?
                     currentOrder['x_receipt_type'] = 'Válida para Crédito Fiscal';
                     if(!currentOrder.get('client').vat) {
                         this.pos_widget.screen_selector.show_popup('error',{
@@ -607,6 +612,27 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                 self.pos.get('selectedOrder')._printed = true;
                 window.print();
             }, 1000);
+        }
+    });
+
+    module.ClientListScreenWidget = module.ClientListScreenWidget.extend({
+        show: function(){
+            var self = this;
+            this._super();
+
+            this.$('.next').unbind('click');
+            this.$('.next').click(function(){
+                if (self.pos.get('selectedOrder').immutable && self.has_client_changed()) {
+                    // Error: changed client on immutable order.
+                    self.pos_widget.screen_selector.show_popup('error',{
+                        'message':_t('Error: No se puede cambiar el cliente'),
+                        'comment':_t('La orden es una orden pendiente!')
+                    });
+                    return;
+                }
+                self.save_changes();
+                self.pos_widget.screen_selector.back();
+            });
         }
     });
 

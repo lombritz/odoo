@@ -13,11 +13,6 @@ function openerp_pos_ncf_widgets(instance, module) { //module is instance.point_
                 var ss = self.pos.pos_widget.screen_selector;
                 if ( !selected ) {
                     self.selectOrder();
-                } else if ( self.order.immutable ) {
-                    ss.show_popup('error', {
-                        'message': _t('No puede cambiar Cliente'),
-                        'comment': _t('No puede cambiar Cliente en una orden pendiente.')
-                    });
                 } else {
                     if ( ss.get_current_screen() === 'clientlist' ){
                         ss.back();

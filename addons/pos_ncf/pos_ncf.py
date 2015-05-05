@@ -111,7 +111,7 @@ class PosOrder(models.Model):
                 session.write({'sequence_number': order['sequence_number'] + 1})
                 session.refresh()
 
-            if order['amount_return']:
+            if order['amount_return'] and round(order['amount_return']) > 0:
                 cash_journal = session.cash_journal_id
                 if not cash_journal:
                     cash_journal_ids = filter(lambda st: st.journal_id.type=='cash', session.statement_ids)

@@ -164,7 +164,7 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
             var next = this.ncf_sequences_next[ncf_type];
 
             if(!sequence) {
-                console.error('No sequence found for:'+ncf_type);
+                //console.error('No sequence found for:'+ncf_type);
                 return 'Error';
             }
 
@@ -335,17 +335,6 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                 }), 0);
             } else {
                 return 0;
-            }
-        },
-
-        set_client: function(client){
-            if (this.immutable) {
-                this.pos.pos_widget.screen_selector.show_popup('error',{
-                    message: _t("No puede cambiar el cliente"),
-                    comment: _t('No puede cambiar el cliente de una orden pendiente')
-                });
-            } else {
-                this.set('client',client);
             }
         },
 
