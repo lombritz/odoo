@@ -116,22 +116,18 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
             var contents = this.$el[0].querySelector('.order-list-contents');
             contents.innerHTML = "";
             for(var i = 0, len = Math.min(orders.length,1000); i < len; i++){
-                if (orders[i]) {
-                    var clientline_html = QWeb.render('PendingOrderLine', {widget: this, order: orders[i]});
-                    var clientline = document.createElement('tbody');
-                    clientline.innerHTML = clientline_html;
-                    clientline = clientline.childNodes[1];
+                var clientline_html = QWeb.render('PendingOrderLine',{widget: this, order: orders[i]});
+                var clientline = document.createElement('tbody');
+                clientline.innerHTML = clientline_html;
+                clientline = clientline.childNodes[1];
 
-                    if (orders[i] === this.new_order) {
-                        clientline.classList.add('highlight');
-                    } else {
-                        clientline.classList.remove('highlight');
-                    }
-
-                    contents.appendChild(clientline);
-                } else {
-                    console.log('Order at index [' + i + '] is NOT defined!');
+                if( orders[i] === this.new_order ){
+                    clientline.classList.add('highlight');
+                }else{
+                    clientline.classList.remove('highlight');
                 }
+
+                contents.appendChild(clientline);
             }
         },
         set_pending_order: function() {

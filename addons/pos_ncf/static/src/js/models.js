@@ -124,15 +124,11 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                                 // add orderlines
                                 _.each(orderlines, function(orderline) {
                                     var product = self.db.get_product_by_id(orderline.product_id[0]);
-                                    if (product) {
-                                        order.addProduct(product, {
-                                            price: product.price,
-                                            quantity: orderline.qty,
-                                            discount: orderline.discount
-                                        });
-                                    } else {
-                                        log.console('Product with id [' + orderline.product_id[0] + '] has NOT been found.');
-                                    }
+                                    order.addProduct(product, {
+                                        price: product.price,
+                                        quantity: orderline.qty,
+                                        discount: orderline.discount
+                                    });
                                 });
                             });
                         self.db.add_pending_orders([order]);
@@ -273,15 +269,11 @@ function openerp_pos_ncf_models(instance, module){ //module is instance.point_of
                                 // add orderlines
                                 _.each(orderlines, function(orderline) {
                                     var product = self.db.get_product_by_id(orderline.product_id[0]);
-                                    if (product) {
-                                        order.addProduct(product, {
-                                            price: product.price,
-                                            quantity: orderline.qty,
-                                            discount: orderline.discount
-                                        });
-                                    } else {
-                                        log.console('Product with id [' + orderline.product_id[0] + '] has NOT been found.');
-                                    }
+                                    order.addProduct(product, {
+                                        price: product.price,
+                                        quantity: orderline.qty,
+                                        discount: orderline.discount
+                                    });
                                 });
                             });
                         self.db.add_pending_orders([order]);
