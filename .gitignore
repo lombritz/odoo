@@ -1,0 +1,6 @@
+.local/
+.cache/
+*.pyc
+.bash_history
+.viminfo
+
