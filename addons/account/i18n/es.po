@@ -3732,32 +3732,32 @@ msgstr "Fecha creación"
 #: view:website:account.report_trialbalance
 #: view:website:account.report_vat
 msgid "Credit"
-msgstr "Haber"
+msgstr "Crédito"
 
 #. module: account
 #: selection:account.move.line,centralisation:0
 msgid "Credit Centralisation"
-msgstr "Centralización del haber"
+msgstr "Centralización del crédito"
 
 #. module: account
 #: view:account.invoice.refund:account.view_account_invoice_refund
 msgid "Credit Note"
-msgstr "Factura rectificativa (abono)"
+msgstr "Nota de crédito"
 
 #. module: account
 #: view:account.tax.template:account.view_account_tax_template_form
 msgid "Credit Notes"
-msgstr "Facturas rectificativas"
+msgstr "Notas de crédito"
 
 #. module: account
 #: field:account.move.line.reconcile,credit:0
 msgid "Credit amount"
-msgstr "Importe haber"
+msgstr "Importe crédito"
 
 #. module: account
 #: field:account.config.settings,sale_refund_sequence_prefix:0
 msgid "Credit note sequence"
-msgstr "Secuena de las facturas rectificativas"
+msgstr "Secuencia de las notas de crédito"
 
 #. module: account
 #: field:account.bank.statement,currency:0
@@ -4067,17 +4067,17 @@ msgstr ""
 #: view:website:account.report_trialbalance
 #: view:website:account.report_vat
 msgid "Debit"
-msgstr "Debe"
+msgstr "Débito"
 
 #. module: account
 #: selection:account.move.line,centralisation:0
 msgid "Debit Centralisation"
-msgstr "Centralización del debe"
+msgstr "Centralización del débito"
 
 #. module: account
 #: field:account.move.line.reconcile,debit:0
 msgid "Debit amount"
-msgstr "Importe debe"
+msgstr "Importe débito"
 
 #. module: account
 #: selection:report.account.sales,month:0
@@ -4234,7 +4234,7 @@ msgstr "Mostrar cuentas"
 #. module: account
 #: field:accounting.report,debit_credit:0
 msgid "Display Debit/Credit Columns"
-msgstr "Mostrar columnas debe/haber"
+msgstr "Mostrar columnas débito/crédito"
 
 #. module: account
 #: field:account.vat.declaration,display_detail:0
@@ -9968,13 +9968,13 @@ msgstr "Plazo de pago del proveedor"
 #: view:website:account.report_invoice_document
 #, python-format
 msgid "Supplier Refund"
-msgstr "Factura rectificativa de proveedor"
+msgstr "Nota de crédito de proveedor"
 
 #. module: account
 #: model:ir.actions.act_window,name:account.action_invoice_tree4
 #: model:ir.ui.menu,name:account.menu_action_invoice_tree4
 msgid "Supplier Refunds"
-msgstr "Facturas rectificativas de proveedor"
+msgstr "Notas de crédito de proveedor"
 
 #. module: account
 #: field:product.template,supplier_taxes_id:0
@@ -9984,7 +9984,7 @@ msgstr "Impuestos proveedor"
 #. module: account
 #: field:account.config.settings,purchase_refund_sequence_prefix:0
 msgid "Supplier credit note sequence"
-msgstr "Secuencia de factura rectificativa de proveedor"
+msgstr "Secuencia de notas de crédito de proveedor"
 
 #. module: account
 #: field:account.config.settings,purchase_sequence_prefix:0
@@ -11450,7 +11450,7 @@ msgstr "Total crédito"
 #: view:account.move:account.view_move_form
 #: view:account.move.line:account.view_move_line_tree
 msgid "Total Debit"
-msgstr "Total debe"
+msgstr "Total débito"
 
 #. module: account
 #: field:res.partner,total_invoiced:0

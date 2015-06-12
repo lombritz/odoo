@@ -553,6 +553,7 @@ function openerp_pos_ncf_screens(instance, module){ //module is instance.point_o
                     self.pos.get('selectedOrder').destroy();
                 });
             } else {
+                currentOrder['x_pending_order'] = this.pos.db.pending_order_by_id[currentOrder.x_pending_order_id];
                 self.pos.push_order(currentOrder);
                 if (self.pos.config.iface_print_via_proxy) {
                     var receipt = currentOrder.export_for_printing();

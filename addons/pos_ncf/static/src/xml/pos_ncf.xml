@@ -199,12 +199,19 @@
                 <tr>
                     <span style="font-size:18px; font-weight:bold">Total <t t-esc="prod_qty"/> piezas.</span>
                 </tr>
-                <tr>
+                <tr t-if="!order.x_pending_order">
                     <td>
                         <t t-esc="order.x_display_delivery_date" />
                     </td>
                 </tr>
             </table>
+            <t t-if="order.x_pending_order">
+                <div style="padding-top:3px">
+                    <div>
+                        Ref. <t t-esc="order.x_pending_order.get('name')"/>
+                    </div>
+                </div>
+            </t>
             <t t-if="order.get('client')">
                 <div style="padding-top:10px">
                     <div style="text-align:center; font-size:40px">
