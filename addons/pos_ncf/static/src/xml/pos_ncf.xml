@@ -6,7 +6,7 @@
             <div class="pos-sale-ticket">
 
                 <div class="pos-center-align"><t t-esc="order.get('creationDate').toString(Date.CultureInfo.formatPatterns.shortDate + ' ' +
-                    Date.CultureInfo.formatPatterns.longTime)"/> <t t-esc="order.get('name')"/></div>
+                    Date.CultureInfo.formatPatterns.longTime)"/> <t t-esc="order.get('order').pos_reference"/></div>
                 <br />
                 <t t-esc="order.get('companyName')"/><br />
                 Cajero: <t t-esc="order.user_id ? order.user_id[1] : ''"/><br />
@@ -208,7 +208,7 @@
             <t t-if="order.x_pending_order">
                 <div style="padding-top:3px">
                     <div>
-                        Ref. <t t-esc="order.x_pending_order.get('name')"/>
+                        Ref. <t t-esc="order.x_pending_order.get('order').pos_reference"/>
                     </div>
                 </div>
             </t>
@@ -230,7 +230,7 @@
     <t t-name="PendingOrderLine">
         <tr class='order-line' t-att-data-id='order.id'>
             <td><t t-esc="order.get('creationDate').toString(Date.CultureInfo.formatPatterns.shortDate) or ''" /></td>
-            <td><t t-esc="order.get('name') or ''" /></td>
+            <td><t t-esc="order.get('order').pos_reference or ''" /></td>
             <td><t t-esc="order.get('client').name or ''" /></td>
             <td><t t-esc="order.get('client').phone or ''" /></td>
             <td><t t-esc="widget.format_currency(order.get('order').amount_paid) or ''" /></td>
