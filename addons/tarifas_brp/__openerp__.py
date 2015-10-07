@@ -39,8 +39,8 @@
     'author': 'Wilton Beltre',
     'website': 'www.google.com',
     'data': [
-        'data/product.pricelist.version.csv'
-    ],
+        'data/res_currency_brp.xml'
+      ],
     'test': [],
     'demo': [],
     'installable': True,
