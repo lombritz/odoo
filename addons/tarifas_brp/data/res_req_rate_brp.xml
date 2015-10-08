@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+        <!-- Currency for Point of Banco de Reservas -->
+        <!-- tareas a automatizar: hacer una cuenta de pago en Contabilidad->Diarios->Diarios
+             hacerle sus cuentas contables y ponerle la divisa
+              - - -> Esto esta semi automatico.
+          -->
+        <record id="BRP" model="res.currency">
+            <field name="name">BRP</field>
+            <field name="symbol">BRP</field>
+            <field name="rounding">0.01</field>
+            <field name="accuracy">4</field>
+        </record>
+        <record forcecreate="0" id="rateBRP" model="res.currency.rate">
+            <field name="currency_id" ref="BRP" />
+            <field name="name">2015-10-04</field>
+            <field name="rate">0.01000000</field>
+        </record>
+
+        <!--
+            Price list type
+        -->
+        <record id="list_price_brp" model="product.price.type">
+            <field name="name">Precio BRP (BanReservas Puntos)</field>
+            <field name="field">list_price</field>
+            <field name="currency_id" ref="BRP"/>
+        </record>
+
+        <record id="list00099" model="product.pricelist">
+            <field name="name">Tarifa - BRP</field>
+            <field name="type">sale</field>
+            <field name="currency_id" ref="BRP"/>
+        </record>
+        <record id="ver00099" model="product.pricelist.version">
+            <field name="pricelist_id" ref="list00099"/>
+            <field name="name">Precio de lista BRP</field>
+            <field name="currency_id" ref="BRP"/>
+        </record>
+        <record id="item00099" model="product.pricelist.item">
+            <field name="price_version_id" ref="ver00099"/>
+            <field name="base" ref="list_price_brp"/>
+            <field name="sequence">2000</field>
+            <field name="price_discount">-0.9900</field>
+            <field name="name">Default Public Pricelist Line (BRP)</field>
+        </record>
+
+        <record id="account_journal_point_of_br" model="account.journal">
+            <field name="name">Ptos BR</field>
+            <field name="code">BNK3</field>
+            <field name="type">sale</field>
+            <field name="sequence_id" ref="account.sequence_sale_journal"/>
+            <field name="analytic_journal_id" ref="account.analytic_journal_sale"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="currency" ref="BRP"/>
+        </record>
+    </data>
+</openerp>

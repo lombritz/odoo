@@ -32,14 +32,21 @@
 ##############################################################################
 
 {
-    'name': 'Custom Points',
+    'name': 'Req: Tarifas y Puntos - Estilo y Figura',
     'version': '1.0',
     'category': 'Localization/Account Charts',
-    'description': """ Simple Tarifas del BanReservas.""",
+    'description': """
+    --- Requerimiento de Estilo y figura: ---
+     - Tarifa de Acuerdo a Puntos de Credito
+     - Moneda BRP (Banco de Reservas Puntos)
+     - Tipo de pago con BRP (Conf. de un diario para pago, asi como Cash, Bank, etc.)
+      * issue: el tema es que si se le configura al diario/tipo de pago unas cuentas
+            debit/credit tenemos el error: no currency rate associated for currency for the given period
+    """,
     'author': 'Wilton Beltre',
-    'website': 'www.google.com',
+    'website': 'gitlab.codefirstlab.com/lombritz/odoo',
     'data': [
-        'data/res_currency_brp.xml'
+        'data/res_req_rate_brp.xml'
       ],
     'test': [],
     'demo': [],

@@ -1,2 +1,0 @@
-"id","active","base","company_id/id","accuracy","create_uid/id","write_uid/id","write_date","rate_ids/id","rate_ids/create_uid/id","rate_ids/create_date","rate_ids/name","rate_ids/write_uid/id","rate_ids/write_date","rate_ids/rate","rounding","symbol","position"
-"__export__.res_currency_175","True","False","","4","base.user_root","base.user_root","2015-10-05 21:42:33","__export__.res_currency_rate_176","base.user_root","2015-10-05 21:37:04","2015-10-05 21:37:04","base.user_root","2015-10-05 21:42:33","100.0","0.01","BRP","After Amount"
