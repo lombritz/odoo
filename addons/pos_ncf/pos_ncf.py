@@ -147,6 +147,11 @@ class PosOrder(models.Model):
         # self.create_account_move(cr, uid, ids, context=context)
         return True
 
+    def refund(self, cr, uid, ids, context=None):
+        for order in self.browse(cr, uid, ids, context=context):
+            if order['state'] == 'pending':
+                self.write(cr, uid, ids, {'state': 'cancel'}, context=context)
+        return super(PosOrder, self).refund(cr, uid, ids, context=context)
 
 class PosConfig(models.Model):
     _inherit = 'pos.config'
