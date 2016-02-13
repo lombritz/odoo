@@ -4,3 +4,7 @@
 .bash_history
 .viminfo
 
+*.egg-info
+build/
+*.egg
+.idea/
